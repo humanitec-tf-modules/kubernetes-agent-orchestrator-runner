@@ -596,5 +596,69 @@ The test suite validates:
 - Output validation
 
 <!-- BEGIN_TF_DOCS -->
+## Requirements
 
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.0 |
+| <a name="requirement_platform-orchestrator"></a> [platform-orchestrator](#requirement\_platform-orchestrator) | ~> 2.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.0 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.5.3 |
+| <a name="provider_platform-orchestrator"></a> [platform-orchestrator](#provider\_platform-orchestrator) | 2.10.1 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [helm_release.humanitec_kubernetes_agent_runner](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubernetes_namespace.humanitec_kubernetes_agent_runner](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [kubernetes_namespace.humanitec_kubernetes_agent_runner_job](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [kubernetes_secret.agent_runner_key](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [platform-orchestrator_kubernetes_agent_runner.my_runner](https://registry.terraform.io/providers/humanitec/platform-orchestrator/latest/docs/resources/kubernetes_agent_runner) | resource |
+| [random_id.runner_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
+| [random_id.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
+| [local_file.agent_runner_private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/data-sources/file) | data source |
+| [local_file.agent_runner_public_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/data-sources/file) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_extra_env_vars"></a> [extra\_env\_vars](#input\_extra\_env\_vars) | Additional environment variables to pass to the kubernetes-agent runner pods | <pre>list(object({<br/>    name  = string<br/>    value = string<br/>  }))</pre> | `[]` | no |
+| <a name="input_humanitec_org_id"></a> [humanitec\_org\_id](#input\_humanitec\_org\_id) | The Humanitec organization ID to be set as a value in the Helm chart | `string` | n/a | yes |
+| <a name="input_k8s_job_namespace"></a> [k8s\_job\_namespace](#input\_k8s\_job\_namespace) | The Kubernetes namespace where the deployment jobs run | `string` | `"humanitec-kubernetes-agent-runner-job-ns"` | no |
+| <a name="input_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#input\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the deployment jobs created by the kubernetes-agent runner | `string` | `"humanitec-kubernetes-agent-runner-job"` | no |
+| <a name="input_k8s_namespace"></a> [k8s\_namespace](#input\_k8s\_namespace) | The Kubernetes namespace where the kubernetes-agent runner should run | `string` | `"humanitec-kubernetes-agent-runner-ns"` | no |
+| <a name="input_k8s_service_account_name"></a> [k8s\_service\_account\_name](#input\_k8s\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the the kubernetes-agent runner | `string` | `"humanitec-kubernetes-agent-runner"` | no |
+| <a name="input_pod_template"></a> [pod\_template](#input\_pod\_template) | A JSON-encoded pod template to customize the runner pods | `string` | `"{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\"}}}"` | no |
+| <a name="input_private_key_path"></a> [private\_key\_path](#input\_private\_key\_path) | The path to the private key file for the kubernetes-agent runner | `string` | n/a | yes |
+| <a name="input_public_key_path"></a> [public\_key\_path](#input\_public\_key\_path) | The path to the public key file for the kubernetes-agent runner | `string` | n/a | yes |
+| <a name="input_runner_id"></a> [runner\_id](#input\_runner\_id) | The ID of the runner. If not provided, one will be generated using runner\_id\_prefix | `string` | `null` | no |
+| <a name="input_runner_id_prefix"></a> [runner\_id\_prefix](#input\_runner\_id\_prefix) | The prefix to use when generating a runner ID. Only used if runner\_id is not provided | `string` | `"runner"` | no |
+| <a name="input_service_account_annotations"></a> [service\_account\_annotations](#input\_service\_account\_annotations) | Annotations to add to the Kubernetes service account. Use this for cloud provider authentication (e.g., AWS IRSA role ARN or GCP Workload Identity service account). | `map(string)` | `{}` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_k8s_job_namespace"></a> [k8s\_job\_namespace](#output\_k8s\_job\_namespace) | The Kubernetes namespace where the deployment jobs are executed |
+| <a name="output_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#output\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account used by the deployment jobs |
+| <a name="output_k8s_namespace"></a> [k8s\_namespace](#output\_k8s\_namespace) | The Kubernetes namespace where the runner is deployed |
+| <a name="output_k8s_service_account"></a> [k8s\_service\_account](#output\_k8s\_service\_account) | The Kubernetes service account used by the runner |
+| <a name="output_runner_id"></a> [runner\_id](#output\_runner\_id) | The ID of the runner |
 <!-- END_TF_DOCS -->
