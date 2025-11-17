@@ -159,7 +159,7 @@ provider "helm" {
 
 # Deploy the Humanitec runner
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = var.orchestrator_org_id
   private_key_path = "./runner_private_key.pem"
@@ -292,7 +292,7 @@ data "google_client_config" "default" {}
 
 # Deploy the Humanitec runner
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
@@ -315,7 +315,7 @@ This example shows how to run the runner pod and deployment jobs in different na
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
@@ -338,7 +338,7 @@ This example shows how to run both the runner pod and deployment jobs in the sam
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
@@ -360,7 +360,7 @@ This example shows how to customize the service account names for both the runne
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
@@ -381,7 +381,7 @@ module "kubernetes_agent_runner" {
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
@@ -400,7 +400,7 @@ This example shows how to pass additional environment variables to the kubernete
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
@@ -434,7 +434,7 @@ This example shows how to customize the pod template for deployment jobs with re
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
@@ -476,7 +476,7 @@ This example shows how to use node selectors and tolerations to control pod plac
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
@@ -512,7 +512,7 @@ module "kubernetes_agent_runner" {
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec/platform-orchestrator-tf-modules//orchestrator-configuration/runner/kubernetes-agent"
+  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   humanitec_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
