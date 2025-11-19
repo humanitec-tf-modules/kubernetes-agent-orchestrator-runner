@@ -22,3 +22,8 @@ output "k8s_service_account" {
   description = "The Kubernetes service account used by the runner"
   value       = var.k8s_service_account_name
 }
+
+output "runner_helm_chart_version" {
+  description = "Helm chart version of the runner"
+  value       = helm_release.humanitec_kubernetes_agent_runner.version
+}

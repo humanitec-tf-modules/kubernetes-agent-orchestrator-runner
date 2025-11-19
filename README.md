@@ -611,9 +611,9 @@ The test suite validates:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.5.3 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.6.1 |
 | <a name="provider_platform-orchestrator"></a> [platform-orchestrator](#provider\_platform-orchestrator) | 2.10.1 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
@@ -645,6 +645,7 @@ No modules.
 | <a name="input_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#input\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the deployment jobs created by the kubernetes-agent runner | `string` | `"humanitec-kubernetes-agent-runner-job"` | no |
 | <a name="input_k8s_namespace"></a> [k8s\_namespace](#input\_k8s\_namespace) | The Kubernetes namespace where the kubernetes-agent runner should run | `string` | `"humanitec-kubernetes-agent-runner-ns"` | no |
 | <a name="input_k8s_service_account_name"></a> [k8s\_service\_account\_name](#input\_k8s\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the the kubernetes-agent runner | `string` | `"humanitec-kubernetes-agent-runner"` | no |
+| <a name="input_kubernetes_agent_runner_chart_version"></a> [kubernetes\_agent\_runner\_chart\_version](#input\_kubernetes\_agent\_runner\_chart\_version) | Version of the Kubernetes Agent Runner Helm chart (optional) | `string` | `null` | no |
 | <a name="input_pod_template"></a> [pod\_template](#input\_pod\_template) | A JSON-encoded pod template to customize the runner pods | `string` | `"{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\"}}}"` | no |
 | <a name="input_private_key_path"></a> [private\_key\_path](#input\_private\_key\_path) | The path to the private key file for the kubernetes-agent runner | `string` | n/a | yes |
 | <a name="input_public_key_path"></a> [public\_key\_path](#input\_public\_key\_path) | The path to the public key file for the kubernetes-agent runner | `string` | n/a | yes |
@@ -660,5 +661,6 @@ No modules.
 | <a name="output_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#output\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account used by the deployment jobs |
 | <a name="output_k8s_namespace"></a> [k8s\_namespace](#output\_k8s\_namespace) | The Kubernetes namespace where the runner is deployed |
 | <a name="output_k8s_service_account"></a> [k8s\_service\_account](#output\_k8s\_service\_account) | The Kubernetes service account used by the runner |
+| <a name="output_runner_helm_chart_version"></a> [runner\_helm\_chart\_version](#output\_runner\_helm\_chart\_version) | Helm chart version of the runner |
 | <a name="output_runner_id"></a> [runner\_id](#output\_runner\_id) | The ID of the runner |
 <!-- END_TF_DOCS -->
