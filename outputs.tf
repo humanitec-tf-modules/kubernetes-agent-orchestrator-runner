@@ -25,5 +25,5 @@ output "k8s_service_account" {
 
 output "runner_helm_chart_version" {
   description = "Helm chart version of the runner"
-  value = helm_release.humanitec_kubernetes_agent_runner.version
+  value       = helm_release.humanitec_kubernetes_agent_runner.version
 }
