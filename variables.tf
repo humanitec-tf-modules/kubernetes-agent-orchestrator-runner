@@ -69,3 +69,9 @@ variable "extra_env_vars" {
   }))
   default = []
 }
+
+variable "helm_devel_enabled" {
+  description = "Whether to set --devel=true for the Helm chart"
+  type        = bool
+  default     = false
+}
