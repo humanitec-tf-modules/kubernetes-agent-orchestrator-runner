@@ -611,9 +611,9 @@ The test suite validates:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.5.3 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.6.1 |
 | <a name="provider_platform-orchestrator"></a> [platform-orchestrator](#provider\_platform-orchestrator) | 2.10.1 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
@@ -640,6 +640,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_extra_env_vars"></a> [extra\_env\_vars](#input\_extra\_env\_vars) | Additional environment variables to pass to the kubernetes-agent runner pods | <pre>list(object({<br/>    name  = string<br/>    value = string<br/>  }))</pre> | `[]` | no |
+| <a name="input_helm_devel_enabled"></a> [helm\_devel\_enabled](#input\_helm\_devel\_enabled) | Whether to set --devel=true for the Helm chart | `bool` | `false` | no |
 | <a name="input_humanitec_org_id"></a> [humanitec\_org\_id](#input\_humanitec\_org\_id) | The Humanitec organization ID to be set as a value in the Helm chart | `string` | n/a | yes |
 | <a name="input_k8s_job_namespace"></a> [k8s\_job\_namespace](#input\_k8s\_job\_namespace) | The Kubernetes namespace where the deployment jobs run | `string` | `"humanitec-kubernetes-agent-runner-job-ns"` | no |
 | <a name="input_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#input\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the deployment jobs created by the kubernetes-agent runner | `string` | `"humanitec-kubernetes-agent-runner-job"` | no |
@@ -660,5 +661,6 @@ No modules.
 | <a name="output_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#output\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account used by the deployment jobs |
 | <a name="output_k8s_namespace"></a> [k8s\_namespace](#output\_k8s\_namespace) | The Kubernetes namespace where the runner is deployed |
 | <a name="output_k8s_service_account"></a> [k8s\_service\_account](#output\_k8s\_service\_account) | The Kubernetes service account used by the runner |
+| <a name="output_runner_helm_chart_version"></a> [runner\_helm\_chart\_version](#output\_runner\_helm\_chart\_version) | Helm chart version of the runner |
 | <a name="output_runner_id"></a> [runner\_id](#output\_runner\_id) | The ID of the runner |
 <!-- END_TF_DOCS -->
