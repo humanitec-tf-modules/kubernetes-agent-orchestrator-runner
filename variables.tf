@@ -70,8 +70,9 @@ variable "extra_env_vars" {
   default = []
 }
 
-variable "helm_devel_enabled" {
-  description = "Whether to set --devel=true for the Helm chart"
-  type        = bool
-  default     = false
+variable "kubernetes_agent_runner_chart_version" {
+  description = "Version of the Kubernetes Agent Runner Helm chart (optional)"
+  type        = string
+  default     = null
+  nullable    = true
 }

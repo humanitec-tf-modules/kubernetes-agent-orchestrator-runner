@@ -36,7 +36,7 @@ resource "helm_release" "humanitec_kubernetes_agent_runner" {
   name             = local.kubernetes_agent_runner_helm_release
   namespace        = local.deployment_job_different_namespace ? kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name
   create_namespace = false
-
+  version    = var.kubernetes_agent_runner_chart_version  # Will use latest if null
   repository = "oci://ghcr.io/humanitec/charts"
   chart      = local.kubernetes_agent_runner_helm_chart
 
@@ -71,12 +71,6 @@ resource "helm_release" "humanitec_kubernetes_agent_runner" {
         value : var.k8s_job_service_account_name
       }
     ],
-    var.helm_devel_enabled ? [
-      {
-        name  = "devel"
-        value = "true"
-      }
-    ] : [],
     local.service_account_annotation_sets,
     local.extra_env_vars_sets
   )
