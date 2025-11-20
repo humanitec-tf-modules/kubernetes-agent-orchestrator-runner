@@ -291,15 +291,7 @@ run "test_custom_pod_template_with_labels" {
     humanitec_org_id = "test-org-pod-custom"
     private_key_path = "./tests/fixtures/test_private_key"
     public_key_path  = "./tests/fixtures/test_public_key"
-    pod_template = jsonencode({
-      metadata = {
-        labels = {
-          "app.kubernetes.io/name"    = "humanitec-runner"
-          "app.kubernetes.io/version" = "v1.0.0"
-          "custom-label"              = "custom-value"
-        }
-      }
-    })
+    pod_template     = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\",\"app.kubernetes.io/version\" : \"v1.0.0\",\"custom-label\":\"custom-value\"}}}"
   }
 
   assert {
@@ -318,31 +310,7 @@ run "test_custom_pod_template_with_resources" {
     humanitec_org_id = "test-org-pod-resources"
     private_key_path = "./tests/fixtures/test_private_key"
     public_key_path  = "./tests/fixtures/test_public_key"
-    pod_template = jsonencode({
-      metadata = {
-        labels = {
-          "app.kubernetes.io/name" = "humanitec-runner"
-        }
-        annotations = {
-          "custom-annotation" = "value"
-        }
-      }
-      spec = {
-        containers = [{
-          name = "runner"
-          resources = {
-            requests = {
-              memory = "256Mi"
-              cpu    = "100m"
-            }
-            limits = {
-              memory = "512Mi"
-              cpu    = "200m"
-            }
-          }
-        }]
-      }
-    })
+    pod_template     = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\"},\"annotations\":{\"custom-annotation\":\"value\"}},\"spec\":{\"containers\":[{\"name\":\"runner\",\"resources\":{\"requests\":{\"memory\":\"256Mi\",\"cpu\":\"100m\"},\"limits\":{\"memory\":\"512Mi\",\"cpu\":\"200m\"}}}]}}"
   }
 
   assert {
@@ -363,25 +331,7 @@ run "test_custom_pod_template_with_node_selector" {
     humanitec_org_id = "test-org-pod-selector"
     private_key_path = "./tests/fixtures/test_private_key"
     public_key_path  = "./tests/fixtures/test_public_key"
-    pod_template = jsonencode({
-      metadata = {
-        labels = {
-          "app.kubernetes.io/name" = "humanitec-runner"
-        }
-      }
-      spec = {
-        nodeSelector = {
-          "workload-type" = "humanitec-runner"
-          "node-pool"     = "runner-pool"
-        }
-        tolerations = [{
-          key      = "dedicated"
-          operator = "Equal"
-          value    = "runner"
-          effect   = "NoSchedule"
-        }]
-      }
-    })
+    pod_template     = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\"}},\"spec\":{\"nodeSelector\":{\"workload-type\":\"humanitec-runner\",\"node-pool\":\"runner-pool\"},\"tolerations\":[{\"key\":\"dedicated\",\"operator\":\"Equal\",\"value\":\"runner\",\"effect\":\"NoSchedule\"}]}}"
   }
 
   assert {
