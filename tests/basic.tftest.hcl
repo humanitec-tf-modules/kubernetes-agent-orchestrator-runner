@@ -533,6 +533,6 @@ run "test_self_hosted_artefacts" {
       for s in helm_release.humanitec_kubernetes_agent_runner.set :
       s.name == "image.repository" && s.value == "my-registry.io/humanitec/humanitec-runner"
     ])
-    error_message = "Helm values must not contain image.repository"
+    error_message = "Helm values must contain image.repository set to 'my-registry.io/humanitec/humanitec-runner'"
   }
 }
