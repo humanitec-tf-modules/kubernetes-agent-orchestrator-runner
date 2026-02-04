@@ -63,6 +63,14 @@ run "test_basic_aws_irsa" {
     ])
     error_message = "Helm values must not contain image.repository"
   }
+
+  assert {
+    condition = !anytrue([
+      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      s.name == "image.tag"
+    ])
+    error_message = "Helm values must not contain image.tag"
+  }
 }
 
 run "test_basic_gke_workload_identity" {
@@ -522,6 +530,7 @@ run "test_self_hosted_artefacts" {
 
     kubernetes_agent_runner_chart_repository = "oci://my-registry.io/humanitec/charts"
     kubernetes_agent_runner_image            = "my-registry.io/humanitec/humanitec-runner"
+    kubernetes_agent_runner_image_tag        = "v1.2.3"
   }
 
   assert {
@@ -534,5 +543,13 @@ run "test_self_hosted_artefacts" {
       s.name == "image.repository" && s.value == "my-registry.io/humanitec/humanitec-runner"
     ])
     error_message = "Helm values must contain image.repository set to 'my-registry.io/humanitec/humanitec-runner'"
+  }
+
+  assert {
+    condition = anytrue([
+      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      s.name == "image.tag" && s.value == "v1.2.3"
+    ])
+    error_message = "Image tag must be \"v1.2.3\""
   }
 }

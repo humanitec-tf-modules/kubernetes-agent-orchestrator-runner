@@ -71,9 +71,10 @@ resource "helm_release" "humanitec_kubernetes_agent_runner" {
         value : var.k8s_job_service_account_name
       }
     ],
+    local.image_repository_set,
+    local.image_tag_set,
     local.service_account_annotation_sets,
-    local.extra_env_vars_sets,
-    local.image_repository_set
+    local.extra_env_vars_sets
   )
 
   depends_on = [
