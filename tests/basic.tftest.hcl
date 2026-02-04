@@ -61,7 +61,7 @@ run "test_basic_aws_irsa" {
       for s in helm_release.humanitec_kubernetes_agent_runner.set :
       s.name == "image.repository"
     ])
-    error_message = "Helm values must not contain image.repository"
+    error_message = "Helm values must not contain \"image.repository\""
   }
 
   assert {
@@ -69,7 +69,7 @@ run "test_basic_aws_irsa" {
       for s in helm_release.humanitec_kubernetes_agent_runner.set :
       s.name == "image.tag"
     ])
-    error_message = "Helm values must not contain image.tag"
+    error_message = "Helm values must not contain \"image.tag\""
   }
 }
 
@@ -551,5 +551,36 @@ run "test_self_hosted_artefacts" {
       s.name == "image.tag" && s.value == "v1.2.3"
     ])
     error_message = "Image tag must be \"v1.2.3\""
+  }
+}
+
+# Cover passing in empty strings to the image variables.
+# Doing so must result in the corresponding Helm chart values not being set.
+run "test_empty_image_variables" {
+  command = plan
+
+  variables {
+    humanitec_org_id = "test-org-123"
+    private_key_path = "./tests/fixtures/test_private_key"
+    public_key_path  = "./tests/fixtures/test_public_key"
+
+    kubernetes_agent_runner_image_repository = ""
+    kubernetes_agent_runner_image_tag        = ""
+  }
+
+  assert {
+    condition = !anytrue([
+      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      s.name == "image.repository"
+    ])
+    error_message = "Helm values must not contain \"image.repository\""
+  }
+
+  assert {
+    condition = !anytrue([
+      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      s.name == "image.tag"
+    ])
+    error_message = "Helm values must not contain \"image.tag\""
   }
 }
