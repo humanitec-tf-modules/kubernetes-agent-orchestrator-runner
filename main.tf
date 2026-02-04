@@ -39,13 +39,13 @@ locals {
   # Build image repository and image tag sets for helm set values.
   # We must not set a value of "" because that would override the default from the values.yaml
   # and we do not want to duplicate that default value here
-  image_repository_set = (var.kubernetes_agent_runner_image_repository == null) || (var.kubernetes_agent_runner_image_repository == "") ? [] : [
+  image_repository_sets = (var.kubernetes_agent_runner_image_repository == null) || (var.kubernetes_agent_runner_image_repository == "") ? [] : [
     {
       name : "image.repository"
       value : var.kubernetes_agent_runner_image_repository
     }
   ]
-  image_tag_set = (var.kubernetes_agent_runner_image_tag == null) || (var.kubernetes_agent_runner_image_tag == "") ? [] : [
+  image_tag_sets = (var.kubernetes_agent_runner_image_tag == null) || (var.kubernetes_agent_runner_image_tag == "") ? [] : [
     {
       name : "image.tag"
       value : var.kubernetes_agent_runner_image_tag
