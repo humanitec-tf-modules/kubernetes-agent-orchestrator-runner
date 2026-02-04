@@ -59,7 +59,7 @@ run "test_basic_aws_irsa" {
   assert {
     condition = !anytrue([
       for s in helm_release.humanitec_kubernetes_agent_runner.set :
-      s.name == "image.repository" && s.value != null
+      s.name == "image.repository"
     ])
     error_message = "Helm values must not contain image.repository"
   }
