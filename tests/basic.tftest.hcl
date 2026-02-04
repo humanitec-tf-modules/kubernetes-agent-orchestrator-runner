@@ -529,7 +529,7 @@ run "test_self_hosted_artefacts" {
     public_key_path  = "./tests/fixtures/test_public_key"
 
     kubernetes_agent_runner_chart_repository = "oci://my-registry.io/humanitec/charts"
-    kubernetes_agent_runner_image            = "my-registry.io/humanitec/humanitec-runner"
+    kubernetes_agent_runner_image_repository = "my-registry.io/humanitec/humanitec-runner"
     kubernetes_agent_runner_image_tag        = "v1.2.3"
   }
 

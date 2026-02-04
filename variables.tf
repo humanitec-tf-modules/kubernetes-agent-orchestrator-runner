@@ -83,8 +83,8 @@ variable "kubernetes_agent_runner_chart_repository" {
   default     = "oci://ghcr.io/humanitec/charts"
 }
 
-variable "kubernetes_agent_runner_image" {
-  description = "Kubernetes Agent Runner image (optional). If omitted, defaults to the value defined in the runner chart values.yaml file"
+variable "kubernetes_agent_runner_image_repository" {
+  description = "Kubernetes Agent Runner image without the tag, e.g. \"my-registry.io/humanitec/humanitec-runner\" (optional). If omitted, defaults to the value defined in the runner chart values.yaml file"
   type        = string
   default     = null
   nullable    = true
