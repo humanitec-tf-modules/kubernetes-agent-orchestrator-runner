@@ -55,6 +55,14 @@ run "test_basic_aws_irsa" {
     condition     = helm_release.humanitec_kubernetes_agent_runner.namespace == "humanitec-kubernetes-agent-runner-ns"
     error_message = "Helm release should be deployed in the deployment namespace"
   }
+
+  assert {
+    condition = !anytrue([
+      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      s.name == "image.repository" && s.value != null
+    ])
+    error_message = "Helm values must not contain image.repository"
+  }
 }
 
 run "test_basic_gke_workload_identity" {
@@ -501,5 +509,30 @@ run "test_extra_env_vars_helm_integration" {
   assert {
     condition     = helm_release.humanitec_kubernetes_agent_runner.name == "humanitec-kubernetes-agent-runner"
     error_message = "Helm release should be created with both service account annotations and extra env vars"
+  }
+}
+
+run "test_self_hosted_artefacts" {
+  command = plan
+
+  variables {
+    humanitec_org_id = "test-org-123"
+    private_key_path = "./tests/fixtures/test_private_key"
+    public_key_path  = "./tests/fixtures/test_public_key"
+
+    kubernetes_agent_runner_chart_repository = "oci://my-registry.io/humanitec/charts"
+    kubernetes_agent_runner_image            = "my-registry.io/humanitec/humanitec-runner"
+  }
+
+  assert {
+    condition     = helm_release.humanitec_kubernetes_agent_runner.repository == "oci://my-registry.io/humanitec/charts"
+    error_message = "Helm repository should be 'oci://my-registry.io/humanitec/charts'"
+  }
+  assert {
+    condition = anytrue([
+      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      s.name == "image.repository" && s.value == "my-registry.io/humanitec/humanitec-runner"
+    ])
+    error_message = "Helm values must not contain image.repository"
   }
 }

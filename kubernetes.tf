@@ -37,7 +37,7 @@ resource "helm_release" "humanitec_kubernetes_agent_runner" {
   namespace        = local.deployment_job_different_namespace ? kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name
   create_namespace = false
   version          = var.kubernetes_agent_runner_chart_version # Will use latest if null
-  repository       = "oci://ghcr.io/humanitec/charts"
+  repository       = var.kubernetes_agent_runner_chart_repository
   chart            = local.kubernetes_agent_runner_helm_chart
 
   set = concat(
@@ -72,7 +72,8 @@ resource "helm_release" "humanitec_kubernetes_agent_runner" {
       }
     ],
     local.service_account_annotation_sets,
-    local.extra_env_vars_sets
+    local.extra_env_vars_sets,
+    local.image_repository_set
   )
 
   depends_on = [
