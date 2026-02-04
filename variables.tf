@@ -78,7 +78,7 @@ variable "kubernetes_agent_runner_chart_version" {
 }
 
 variable "kubernetes_agent_runner_chart_repository" {
-  description = "Repository of the Kubernetes Agent Runner Helm chart (optional) Defaults to \"oci://ghcr.io/humanitec/charts\""
+  description = "Repository of the Kubernetes Agent Runner Helm chart (optional). Defaults to \"oci://ghcr.io/humanitec/charts\""
   type        = string
   default     = "oci://ghcr.io/humanitec/charts"
 }
