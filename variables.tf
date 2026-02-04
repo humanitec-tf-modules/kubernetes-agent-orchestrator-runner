@@ -84,14 +84,14 @@ variable "kubernetes_agent_runner_chart_repository" {
 }
 
 variable "kubernetes_agent_runner_image_repository" {
-  description = "Kubernetes Agent Runner image without the tag, e.g. \"my-registry.io/humanitec/humanitec-runner\" (optional). If omitted, defaults to the value defined in the runner chart values.yaml file"
+  description = "Kubernetes Agent Runner image without the tag, e.g. \"my-registry.io/humanitec/humanitec-runner\" (optional). If omitted or set to an empty string (\"\"), defaults to the value defined in the runner chart values.yaml file"
   type        = string
   default     = null
   nullable    = true
 }
 
 variable "kubernetes_agent_runner_image_tag" {
-  description = "Kubernetes Agent Runner image tag (optional). If omitted, defaults to the value defined in the runner chart values.yaml file"
+  description = "Kubernetes Agent Runner image tag (optional). If omitted or set to an empty string (\"\"), defaults to the value defined in the runner chart values.yaml file"
   type        = string
   default     = null
   nullable    = true
