@@ -3,7 +3,7 @@ data "local_file" "agent_runner_private_key" {
 }
 
 # The namespace for the kubernetes-agent runner deployment. If job and deployment runs in the same namespace, this resource is not created.
-resource "kubernetes_namespace" "humanitec_kubernetes_agent_runner" {
+resource "kubernetes_namespace" "platform_orchestrator_kubernetes_agent_runner" {
   count = local.deployment_job_different_namespace ? 1 : 0
   metadata {
     name = var.k8s_namespace
@@ -11,7 +11,7 @@ resource "kubernetes_namespace" "humanitec_kubernetes_agent_runner" {
 }
 
 # The namespace for the kubernetes-agent runner deployment job
-resource "kubernetes_namespace" "humanitec_kubernetes_agent_runner_job" {
+resource "kubernetes_namespace" "platform_orchestrator_kubernetes_agent_runner_job" {
   metadata {
     name = var.k8s_job_namespace
   }
@@ -21,7 +21,7 @@ resource "kubernetes_namespace" "humanitec_kubernetes_agent_runner_job" {
 resource "kubernetes_secret" "agent_runner_key" {
   metadata {
     name      = local.kubernetes_agent_private_key_secret_name
-    namespace = local.deployment_job_different_namespace ? kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name
+    namespace = local.deployment_job_different_namespace ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
   }
 
   type = "Opaque"
@@ -32,9 +32,9 @@ resource "kubernetes_secret" "agent_runner_key" {
 }
 
 # Install the Kubernetes agent runner Helm chart
-resource "helm_release" "humanitec_kubernetes_agent_runner" {
+resource "helm_release" "platform_orchestrator_kubernetes_agent_runner" {
   name             = local.kubernetes_agent_runner_helm_release
-  namespace        = local.deployment_job_different_namespace ? kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name
+  namespace        = local.deployment_job_different_namespace ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
   create_namespace = false
   version          = var.kubernetes_agent_runner_chart_version # Will use latest if null
   repository       = var.kubernetes_agent_runner_chart_repository
@@ -43,20 +43,20 @@ resource "helm_release" "humanitec_kubernetes_agent_runner" {
   set = concat(
     [
       {
-        name : "humanitec.orgId"
-        value : var.humanitec_org_id
+        name : "platformOrchestrator.orgId"
+        value : local.orchestrator_org_id
       },
       {
-        name : "humanitec.runnerId"
+        name : "platformOrchestrator.runnerId"
         value : platform-orchestrator_kubernetes_agent_runner.my_runner.id
       },
       {
-        name : "humanitec.existingSecret"
+        name : "platformOrchestrator.existingSecret"
         value : kubernetes_secret.agent_runner_key.metadata[0].name
       },
       {
         name : "namespaceOverride"
-        value : local.deployment_job_different_namespace ? kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name
+        value : local.deployment_job_different_namespace ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
       },
       {
         name : "serviceAccount.name",
@@ -64,7 +64,7 @@ resource "helm_release" "humanitec_kubernetes_agent_runner" {
       },
       {
         name : "jobsRbac.namespace"
-        value : kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name
+        value : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
       },
       {
         name : "jobsRbac.serviceAccountName"
@@ -78,7 +78,7 @@ resource "helm_release" "humanitec_kubernetes_agent_runner" {
   )
 
   depends_on = [
-    kubernetes_namespace.humanitec_kubernetes_agent_runner,
-    kubernetes_namespace.humanitec_kubernetes_agent_runner_job
+    kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner,
+    kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job
   ]
 }

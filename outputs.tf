@@ -5,7 +5,7 @@ output "runner_id" {
 
 output "k8s_job_namespace" {
   description = "The Kubernetes namespace where the deployment jobs are executed"
-  value       = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name
+  value       = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
 }
 
 output "k8s_job_service_account_name" {
@@ -15,7 +15,7 @@ output "k8s_job_service_account_name" {
 
 output "k8s_namespace" {
   description = "The Kubernetes namespace where the runner is deployed"
-  value       = local.deployment_job_different_namespace ? kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name
+  value       = local.deployment_job_different_namespace ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
 }
 
 output "k8s_service_account" {
@@ -25,5 +25,5 @@ output "k8s_service_account" {
 
 output "runner_helm_chart_version" {
   description = "Helm chart version of the runner"
-  value       = helm_release.humanitec_kubernetes_agent_runner.version
+  value       = helm_release.platform_orchestrator_kubernetes_agent_runner.version
 }

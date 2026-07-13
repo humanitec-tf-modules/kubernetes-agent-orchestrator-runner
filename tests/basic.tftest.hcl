@@ -8,57 +8,57 @@ run "test_basic_aws_irsa" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-123"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-123"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
     service_account_annotations = {
       "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/test-runner-role"
     }
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name == "humanitec-kubernetes-agent-runner-ns"
-    error_message = "Default deployment namespace should be 'humanitec-kubernetes-agent-runner-ns'"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-ns"
+    error_message = "Default deployment namespace should be 'platform-orchestrator-kubernetes-agent-runner-ns'"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name == "humanitec-kubernetes-agent-runner-job-ns"
-    error_message = "Default job namespace should be 'humanitec-kubernetes-agent-runner-job-ns'"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-job-ns"
+    error_message = "Default job namespace should be 'platform-orchestrator-kubernetes-agent-runner-job-ns'"
   }
 
   assert {
-    condition     = kubernetes_secret.agent_runner_key.metadata[0].name == "humanitec-kubernetes-agent-runner-private-key"
-    error_message = "Secret name should be 'humanitec-kubernetes-agent-runner-private-key'"
+    condition     = kubernetes_secret.agent_runner_key.metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-private-key"
+    error_message = "Secret name should be 'platform-orchestrator-kubernetes-agent-runner-private-key'"
   }
 
   assert {
-    condition     = kubernetes_secret.agent_runner_key.metadata[0].namespace == "humanitec-kubernetes-agent-runner-ns"
+    condition     = kubernetes_secret.agent_runner_key.metadata[0].namespace == "platform-orchestrator-kubernetes-agent-runner-ns"
     error_message = "Secret should be in deployment namespace"
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.name == "humanitec-kubernetes-agent-runner"
-    error_message = "Helm release name should be 'humanitec-kubernetes-agent-runner'"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.name == "platform-orchestrator-kubernetes-agent-runner"
+    error_message = "Helm release name should be 'platform-orchestrator-kubernetes-agent-runner'"
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.chart == "humanitec-kubernetes-agent-runner"
-    error_message = "Helm chart should be 'humanitec-kubernetes-agent-runner'"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.chart == "platform-orchestrator-kubernetes-agent-runner"
+    error_message = "Helm chart should be 'platform-orchestrator-kubernetes-agent-runner'"
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.repository == "oci://ghcr.io/humanitec/charts"
-    error_message = "Helm repository should be 'oci://ghcr.io/humanitec/charts'"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.repository == "oci://ghcr.io/stellwerk-labs/charts"
+    error_message = "Helm repository should be 'oci://ghcr.io/stellwerk-labs/charts'"
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.namespace == "humanitec-kubernetes-agent-runner-ns"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.namespace == "platform-orchestrator-kubernetes-agent-runner-ns"
     error_message = "Helm release should be deployed in the deployment namespace"
   }
 
   assert {
     condition = !anytrue([
-      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      for s in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
       s.name == "image.repository"
     ])
     error_message = "Helm values must not contain \"image.repository\""
@@ -66,7 +66,7 @@ run "test_basic_aws_irsa" {
 
   assert {
     condition = !anytrue([
-      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      for s in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
       s.name == "image.tag"
     ])
     error_message = "Helm values must not contain \"image.tag\""
@@ -77,17 +77,17 @@ run "test_basic_gke_workload_identity" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-456"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-456"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
     service_account_annotations = {
       "iam.gke.io/gcp-service-account" = "test-sa@test-project.iam.gserviceaccount.com"
     }
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name == "humanitec-kubernetes-agent-runner-ns"
-    error_message = "Default namespace should be 'humanitec-kubernetes-agent-runner'"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-ns"
+    error_message = "Default namespace should be 'platform-orchestrator-kubernetes-agent-runner'"
   }
 
   assert {
@@ -100,14 +100,14 @@ run "test_custom_namespace" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-789"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
-    k8s_namespace    = "custom-runner-namespace"
+    orchestrator_org_id = "test-org-789"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
+    k8s_namespace       = "custom-runner-namespace"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name == "custom-runner-namespace"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name == "custom-runner-namespace"
     error_message = "Namespace should match the custom value 'custom-runner-namespace'"
   }
 
@@ -117,7 +117,7 @@ run "test_custom_namespace" {
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.namespace == "custom-runner-namespace"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.namespace == "custom-runner-namespace"
     error_message = "Helm release namespace should match the custom namespace 'custom-runner-namespace'"
   }
 }
@@ -126,14 +126,14 @@ run "test_custom_service_account" {
   command = plan
 
   variables {
-    humanitec_org_id         = "test-org-abc"
+    orchestrator_org_id      = "test-org-abc"
     private_key_path         = "./tests/fixtures/test_private_key"
     public_key_path          = "./tests/fixtures/test_public_key"
     k8s_service_account_name = "custom-service-account"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name == "humanitec-kubernetes-agent-runner-ns"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-ns"
     error_message = "Should use default namespace when not specified"
   }
 }
@@ -142,19 +142,34 @@ run "test_minimal_configuration" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-minimal"
+    orchestrator_org_id = "test-org-minimal"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
+  }
+
+  assert {
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-ns"
+    error_message = "Should create namespace with default name"
+  }
+
+  assert {
+    condition     = kubernetes_secret.agent_runner_key.metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-private-key"
+    error_message = "Should create secret with default name"
+  }
+}
+
+run "test_deprecated_org_id_alias" {
+  command = plan
+
+  variables {
+    humanitec_org_id = "test-org-legacy"
     private_key_path = "./tests/fixtures/test_private_key"
     public_key_path  = "./tests/fixtures/test_public_key"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name == "humanitec-kubernetes-agent-runner-ns"
-    error_message = "Should create namespace with default name"
-  }
-
-  assert {
-    condition     = kubernetes_secret.agent_runner_key.metadata[0].name == "humanitec-kubernetes-agent-runner-private-key"
-    error_message = "Should create secret with default name"
+    condition     = local.orchestrator_org_id == "test-org-legacy"
+    error_message = "The deprecated organization ID alias should remain functional"
   }
 }
 
@@ -162,9 +177,9 @@ run "test_runner_id_output" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-output"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-output"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
   }
 
   # Validate that the runner_id output is correctly set from the platform-orchestrator resource
@@ -176,20 +191,20 @@ run "test_separate_deployment_job_namespaces" {
   command = plan
 
   variables {
-    humanitec_org_id  = "test-org-separate-ns"
-    private_key_path  = "./tests/fixtures/test_private_key"
-    public_key_path   = "./tests/fixtures/test_public_key"
-    k8s_namespace     = "runner-deployment"
-    k8s_job_namespace = "runner-jobs"
+    orchestrator_org_id = "test-org-separate-ns"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
+    k8s_namespace       = "runner-deployment"
+    k8s_job_namespace   = "runner-jobs"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name == "runner-deployment"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name == "runner-deployment"
     error_message = "Deployment namespace should be 'runner-deployment'"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name == "runner-jobs"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name == "runner-jobs"
     error_message = "Job namespace should be 'runner-jobs'"
   }
 
@@ -199,12 +214,12 @@ run "test_separate_deployment_job_namespaces" {
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.namespace == "runner-deployment"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.namespace == "runner-deployment"
     error_message = "Helm release should be in deployment namespace 'runner-deployment'"
   }
 
   assert {
-    condition     = length(kubernetes_namespace.humanitec_kubernetes_agent_runner) == 1
+    condition     = length(kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner) == 1
     error_message = "Should create deployment namespace when different from job namespace"
   }
 }
@@ -213,20 +228,20 @@ run "test_same_deployment_job_namespace" {
   command = plan
 
   variables {
-    humanitec_org_id  = "test-org-same-ns"
-    private_key_path  = "./tests/fixtures/test_private_key"
-    public_key_path   = "./tests/fixtures/test_public_key"
-    k8s_namespace     = "unified-namespace"
-    k8s_job_namespace = "unified-namespace"
+    orchestrator_org_id = "test-org-same-ns"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
+    k8s_namespace       = "unified-namespace"
+    k8s_job_namespace   = "unified-namespace"
   }
 
   assert {
-    condition     = length(kubernetes_namespace.humanitec_kubernetes_agent_runner) == 0
+    condition     = length(kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner) == 0
     error_message = "Should not create separate deployment namespace when same as job namespace"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name == "unified-namespace"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name == "unified-namespace"
     error_message = "Job namespace should be 'unified-namespace'"
   }
 
@@ -236,7 +251,7 @@ run "test_same_deployment_job_namespace" {
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.namespace == "unified-namespace"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.namespace == "unified-namespace"
     error_message = "Helm release should be in the unified namespace"
   }
 }
@@ -245,7 +260,7 @@ run "test_custom_service_accounts" {
   command = plan
 
   variables {
-    humanitec_org_id             = "test-org-sa"
+    orchestrator_org_id          = "test-org-sa"
     private_key_path             = "./tests/fixtures/test_private_key"
     public_key_path              = "./tests/fixtures/test_public_key"
     k8s_service_account_name     = "custom-deployment-sa"
@@ -253,12 +268,12 @@ run "test_custom_service_accounts" {
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name == "humanitec-kubernetes-agent-runner-ns"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-ns"
     error_message = "Should use default deployment namespace when not specified"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name == "humanitec-kubernetes-agent-runner-job-ns"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-job-ns"
     error_message = "Should use default job namespace when not specified"
   }
 }
@@ -267,14 +282,14 @@ run "test_state_storage_configuration" {
   command = plan
 
   variables {
-    humanitec_org_id  = "test-org-state"
-    private_key_path  = "./tests/fixtures/test_private_key"
-    public_key_path   = "./tests/fixtures/test_public_key"
-    k8s_job_namespace = "job-namespace-with-state"
+    orchestrator_org_id = "test-org-state"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
+    k8s_job_namespace   = "job-namespace-with-state"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name == "job-namespace-with-state"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name == "job-namespace-with-state"
     error_message = "Job namespace should be 'job-namespace-with-state'"
   }
 
@@ -287,15 +302,15 @@ run "test_default_pod_template" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-pod-default"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-pod-default"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
   }
 
   # Test validates that the module uses the default pod_template
-  # The default includes a label "app.kubernetes.io/name" = "humanitec-runner"
+  # The default includes a label "app.kubernetes.io/name" = "platform-orchestrator-runner"
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name == "humanitec-kubernetes-agent-runner-job-ns"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-job-ns"
     error_message = "Should use default job namespace"
   }
 }
@@ -304,14 +319,14 @@ run "test_custom_pod_template_with_labels" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-pod-custom"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
-    pod_template     = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\",\"app.kubernetes.io/version\" : \"v1.0.0\",\"custom-label\":\"custom-value\"}}}"
+    orchestrator_org_id = "test-org-pod-custom"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
+    pod_template        = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\",\"app.kubernetes.io/version\" : \"v1.0.0\",\"custom-label\":\"custom-value\"}}}"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name == "humanitec-kubernetes-agent-runner-job-ns"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-job-ns"
     error_message = "Should create job namespace with custom pod template"
   }
 
@@ -323,19 +338,19 @@ run "test_custom_pod_template_with_resources" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-pod-resources"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
-    pod_template     = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\"},\"annotations\":{\"custom-annotation\":\"value\"}},\"spec\":{\"containers\":[{\"name\":\"runner\",\"resources\":{\"requests\":{\"memory\":\"256Mi\",\"cpu\":\"100m\"},\"limits\":{\"memory\":\"512Mi\",\"cpu\":\"200m\"}}}]}}"
+    orchestrator_org_id = "test-org-pod-resources"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
+    pod_template        = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\"},\"annotations\":{\"custom-annotation\":\"value\"}},\"spec\":{\"containers\":[{\"name\":\"runner\",\"resources\":{\"requests\":{\"memory\":\"256Mi\",\"cpu\":\"100m\"},\"limits\":{\"memory\":\"512Mi\",\"cpu\":\"200m\"}}}]}}"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner[0].metadata[0].name == "humanitec-kubernetes-agent-runner-ns"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-ns"
     error_message = "Should create deployment namespace"
   }
 
   assert {
-    condition     = kubernetes_namespace.humanitec_kubernetes_agent_runner_job.metadata[0].name == "humanitec-kubernetes-agent-runner-job-ns"
+    condition     = kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name == "platform-orchestrator-kubernetes-agent-runner-job-ns"
     error_message = "Should create job namespace"
   }
 }
@@ -344,14 +359,14 @@ run "test_custom_pod_template_with_node_selector" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-pod-selector"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
-    pod_template     = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\"}},\"spec\":{\"nodeSelector\":{\"workload-type\":\"humanitec-runner\",\"node-pool\":\"runner-pool\"},\"tolerations\":[{\"key\":\"dedicated\",\"operator\":\"Equal\",\"value\":\"runner\",\"effect\":\"NoSchedule\"}]}}"
+    orchestrator_org_id = "test-org-pod-selector"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
+    pod_template        = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\"}},\"spec\":{\"nodeSelector\":{\"workload-type\":\"platform-orchestrator-runner\",\"node-pool\":\"runner-pool\"},\"tolerations\":[{\"key\":\"dedicated\",\"operator\":\"Equal\",\"value\":\"runner\",\"effect\":\"NoSchedule\"}]}}"
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.namespace == "humanitec-kubernetes-agent-runner-ns"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.namespace == "platform-orchestrator-kubernetes-agent-runner-ns"
     error_message = "Helm release should be in deployment namespace"
   }
 }
@@ -360,9 +375,9 @@ run "test_extra_env_vars_default_empty" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-env-empty"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-env-empty"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
   }
 
   assert {
@@ -371,7 +386,7 @@ run "test_extra_env_vars_default_empty" {
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.name == "humanitec-kubernetes-agent-runner"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.name == "platform-orchestrator-kubernetes-agent-runner"
     error_message = "Helm release should be created successfully with empty extra_env_vars"
   }
 }
@@ -380,9 +395,9 @@ run "test_extra_env_vars_single" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-env-single"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-env-single"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
     extra_env_vars = [
       {
         name  = "MY_CUSTOM_VAR"
@@ -397,27 +412,27 @@ run "test_extra_env_vars_single" {
   }
 
   assert {
-    condition     = contains([for s in local.extra_env_vars_sets : s.name], "humanitec.extraEnvVars[0].name")
-    error_message = "Should contain humanitec.extraEnvVars[0].name in helm set values"
+    condition     = contains([for s in local.extra_env_vars_sets : s.name], "platformOrchestrator.extraEnvVars[0].name")
+    error_message = "Should contain platformOrchestrator.extraEnvVars[0].name in helm set values"
   }
 
   assert {
-    condition     = contains([for s in local.extra_env_vars_sets : s.name], "humanitec.extraEnvVars[0].value")
-    error_message = "Should contain humanitec.extraEnvVars[0].value in helm set values"
-  }
-
-  assert {
-    condition = anytrue([
-      for s in local.extra_env_vars_sets : s.name == "humanitec.extraEnvVars[0].name" && s.value == "MY_CUSTOM_VAR"
-    ])
-    error_message = "Should have correct name value for humanitec.extraEnvVars[0].name"
+    condition     = contains([for s in local.extra_env_vars_sets : s.name], "platformOrchestrator.extraEnvVars[0].value")
+    error_message = "Should contain platformOrchestrator.extraEnvVars[0].value in helm set values"
   }
 
   assert {
     condition = anytrue([
-      for s in local.extra_env_vars_sets : s.name == "humanitec.extraEnvVars[0].value" && s.value == "custom-value"
+      for s in local.extra_env_vars_sets : s.name == "platformOrchestrator.extraEnvVars[0].name" && s.value == "MY_CUSTOM_VAR"
     ])
-    error_message = "Should have correct value for humanitec.extraEnvVars[0].value"
+    error_message = "Should have correct name value for platformOrchestrator.extraEnvVars[0].name"
+  }
+
+  assert {
+    condition = anytrue([
+      for s in local.extra_env_vars_sets : s.name == "platformOrchestrator.extraEnvVars[0].value" && s.value == "custom-value"
+    ])
+    error_message = "Should have correct value for platformOrchestrator.extraEnvVars[0].value"
   }
 }
 
@@ -425,9 +440,9 @@ run "test_extra_env_vars_multiple" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-env-multiple"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-env-multiple"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
     extra_env_vars = [
       {
         name  = "ENV_VAR_ONE"
@@ -450,37 +465,37 @@ run "test_extra_env_vars_multiple" {
   }
 
   assert {
-    condition     = contains([for s in local.extra_env_vars_sets : s.name], "humanitec.extraEnvVars[0].name")
-    error_message = "Should contain humanitec.extraEnvVars[0].name"
+    condition     = contains([for s in local.extra_env_vars_sets : s.name], "platformOrchestrator.extraEnvVars[0].name")
+    error_message = "Should contain platformOrchestrator.extraEnvVars[0].name"
   }
 
   assert {
-    condition     = contains([for s in local.extra_env_vars_sets : s.name], "humanitec.extraEnvVars[1].name")
-    error_message = "Should contain humanitec.extraEnvVars[1].name"
+    condition     = contains([for s in local.extra_env_vars_sets : s.name], "platformOrchestrator.extraEnvVars[1].name")
+    error_message = "Should contain platformOrchestrator.extraEnvVars[1].name"
   }
 
   assert {
-    condition     = contains([for s in local.extra_env_vars_sets : s.name], "humanitec.extraEnvVars[2].name")
-    error_message = "Should contain humanitec.extraEnvVars[2].name"
+    condition     = contains([for s in local.extra_env_vars_sets : s.name], "platformOrchestrator.extraEnvVars[2].name")
+    error_message = "Should contain platformOrchestrator.extraEnvVars[2].name"
   }
 
   assert {
     condition = anytrue([
-      for s in local.extra_env_vars_sets : s.name == "humanitec.extraEnvVars[0].name" && s.value == "ENV_VAR_ONE"
+      for s in local.extra_env_vars_sets : s.name == "platformOrchestrator.extraEnvVars[0].name" && s.value == "ENV_VAR_ONE"
     ])
     error_message = "First env var name should be ENV_VAR_ONE"
   }
 
   assert {
     condition = anytrue([
-      for s in local.extra_env_vars_sets : s.name == "humanitec.extraEnvVars[1].value" && s.value == "value-two"
+      for s in local.extra_env_vars_sets : s.name == "platformOrchestrator.extraEnvVars[1].value" && s.value == "value-two"
     ])
     error_message = "Second env var value should be value-two"
   }
 
   assert {
     condition = anytrue([
-      for s in local.extra_env_vars_sets : s.name == "humanitec.extraEnvVars[2].name" && s.value == "ENV_VAR_THREE"
+      for s in local.extra_env_vars_sets : s.name == "platformOrchestrator.extraEnvVars[2].name" && s.value == "ENV_VAR_THREE"
     ])
     error_message = "Third env var name should be ENV_VAR_THREE"
   }
@@ -490,9 +505,9 @@ run "test_extra_env_vars_helm_integration" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-env-helm"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-env-helm"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
     extra_env_vars = [
       {
         name  = "DEBUG_MODE"
@@ -505,7 +520,7 @@ run "test_extra_env_vars_helm_integration" {
   }
 
   assert {
-    condition     = length(helm_release.humanitec_kubernetes_agent_runner.set) > 0
+    condition     = length(helm_release.platform_orchestrator_kubernetes_agent_runner.set) > 0
     error_message = "Helm release should have set values"
   }
 
@@ -515,7 +530,7 @@ run "test_extra_env_vars_helm_integration" {
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.name == "humanitec-kubernetes-agent-runner"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.name == "platform-orchestrator-kubernetes-agent-runner"
     error_message = "Helm release should be created with both service account annotations and extra env vars"
   }
 }
@@ -524,30 +539,30 @@ run "test_self_hosted_artefacts" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-123"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-123"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
 
-    kubernetes_agent_runner_chart_repository = "oci://my-registry.io/humanitec/charts"
-    kubernetes_agent_runner_image_repository = "my-registry.io/humanitec/humanitec-runner"
+    kubernetes_agent_runner_chart_repository = "oci://my-registry.io/stellwerk/charts"
+    kubernetes_agent_runner_image_repository = "my-registry.io/stellwerk/platform-orchestrator-runner"
     kubernetes_agent_runner_image_tag        = "v1.2.3"
   }
 
   assert {
-    condition     = helm_release.humanitec_kubernetes_agent_runner.repository == "oci://my-registry.io/humanitec/charts"
-    error_message = "Helm repository should be 'oci://my-registry.io/humanitec/charts'"
+    condition     = helm_release.platform_orchestrator_kubernetes_agent_runner.repository == "oci://my-registry.io/stellwerk/charts"
+    error_message = "Helm repository should be 'oci://my-registry.io/stellwerk/charts'"
   }
   assert {
     condition = anytrue([
-      for s in helm_release.humanitec_kubernetes_agent_runner.set :
-      s.name == "image.repository" && s.value == "my-registry.io/humanitec/humanitec-runner"
+      for s in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
+      s.name == "image.repository" && s.value == "my-registry.io/stellwerk/platform-orchestrator-runner"
     ])
-    error_message = "Helm values must contain image.repository set to 'my-registry.io/humanitec/humanitec-runner'"
+    error_message = "Helm values must contain image.repository set to 'my-registry.io/stellwerk/platform-orchestrator-runner'"
   }
 
   assert {
     condition = anytrue([
-      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      for s in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
       s.name == "image.tag" && s.value == "v1.2.3"
     ])
     error_message = "Image tag must be \"v1.2.3\""
@@ -560,9 +575,9 @@ run "test_empty_image_variables" {
   command = plan
 
   variables {
-    humanitec_org_id = "test-org-123"
-    private_key_path = "./tests/fixtures/test_private_key"
-    public_key_path  = "./tests/fixtures/test_public_key"
+    orchestrator_org_id = "test-org-123"
+    private_key_path    = "./tests/fixtures/test_private_key"
+    public_key_path     = "./tests/fixtures/test_public_key"
 
     kubernetes_agent_runner_image_repository = ""
     kubernetes_agent_runner_image_tag        = ""
@@ -570,7 +585,7 @@ run "test_empty_image_variables" {
 
   assert {
     condition = !anytrue([
-      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      for s in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
       s.name == "image.repository"
     ])
     error_message = "Helm values must not contain \"image.repository\""
@@ -578,7 +593,7 @@ run "test_empty_image_variables" {
 
   assert {
     condition = !anytrue([
-      for s in helm_release.humanitec_kubernetes_agent_runner.set :
+      for s in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
       s.name == "image.tag"
     ])
     error_message = "Helm values must not contain \"image.tag\""

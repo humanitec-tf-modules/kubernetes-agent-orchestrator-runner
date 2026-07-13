@@ -10,9 +10,10 @@ resource "random_id" "suffix" {
 }
 locals {
   runner_id                                = var.runner_id != null ? var.runner_id : random_id.runner_id[0].hex
-  kubernetes_agent_private_key_secret_name = "humanitec-kubernetes-agent-runner-private-key"
-  kubernetes_agent_runner_helm_chart       = "humanitec-kubernetes-agent-runner"
-  kubernetes_agent_runner_helm_release     = "humanitec-kubernetes-agent-runner"
+  orchestrator_org_id                      = var.orchestrator_org_id != null ? var.orchestrator_org_id : var.humanitec_org_id
+  kubernetes_agent_private_key_secret_name = "platform-orchestrator-kubernetes-agent-runner-private-key"
+  kubernetes_agent_runner_helm_chart       = "platform-orchestrator-kubernetes-agent-runner"
+  kubernetes_agent_runner_helm_release     = "platform-orchestrator-kubernetes-agent-runner"
 
   # Build service account annotations for helm set values
   service_account_annotation_sets = [
@@ -26,11 +27,11 @@ locals {
   extra_env_vars_sets = flatten([
     for idx, env_var in var.extra_env_vars : [
       {
-        name  = "humanitec.extraEnvVars[${idx}].name"
+        name  = "platformOrchestrator.extraEnvVars[${idx}].name"
         value = env_var.name
       },
       {
-        name  = "humanitec.extraEnvVars[${idx}].value"
+        name  = "platformOrchestrator.extraEnvVars[${idx}].value"
         value = env_var.value
       }
     ]
@@ -53,4 +54,11 @@ locals {
   ]
 
   deployment_job_different_namespace = var.k8s_namespace != var.k8s_job_namespace
+}
+
+check "orchestrator_org_id" {
+  assert {
+    condition     = try(trimspace(local.orchestrator_org_id) != "", false)
+    error_message = "Set orchestrator_org_id. The deprecated humanitec_org_id alias is accepted during migration."
+  }
 }

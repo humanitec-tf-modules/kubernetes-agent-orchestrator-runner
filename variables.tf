@@ -20,9 +20,18 @@ variable "public_key_path" {
   type        = string
 }
 
-variable "humanitec_org_id" {
-  description = "The Humanitec organization ID to be set as a value in the Helm chart"
+variable "orchestrator_org_id" {
+  description = "The Platform Orchestrator organization ID to be set as a value in the Helm chart"
   type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "humanitec_org_id" {
+  description = "Deprecated alias for orchestrator_org_id"
+  type        = string
+  default     = null
+  nullable    = true
 }
 
 variable "service_account_annotations" {
@@ -34,31 +43,31 @@ variable "service_account_annotations" {
 variable "k8s_namespace" {
   description = "The Kubernetes namespace where the kubernetes-agent runner should run"
   type        = string
-  default     = "humanitec-kubernetes-agent-runner-ns"
+  default     = "platform-orchestrator-kubernetes-agent-runner-ns"
 }
 
 variable "k8s_job_namespace" {
   description = "The Kubernetes namespace where the deployment jobs run"
   type        = string
-  default     = "humanitec-kubernetes-agent-runner-job-ns"
+  default     = "platform-orchestrator-kubernetes-agent-runner-job-ns"
 }
 
 variable "k8s_service_account_name" {
   description = "The name of the Kubernetes service account to be assumed by the the kubernetes-agent runner"
   type        = string
-  default     = "humanitec-kubernetes-agent-runner"
+  default     = "platform-orchestrator-kubernetes-agent-runner"
 }
 
 variable "k8s_job_service_account_name" {
   description = "The name of the Kubernetes service account to be assumed by the deployment jobs created by the kubernetes-agent runner"
   type        = string
-  default     = "humanitec-kubernetes-agent-runner-job"
+  default     = "platform-orchestrator-kubernetes-agent-runner-job"
 }
 
 variable "pod_template" {
   description = "A JSON-encoded pod template to customize the runner pods"
   type        = string
-  default     = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\"}}}"
+  default     = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\"}}}"
 }
 
 variable "extra_env_vars" {
@@ -78,13 +87,13 @@ variable "kubernetes_agent_runner_chart_version" {
 }
 
 variable "kubernetes_agent_runner_chart_repository" {
-  description = "Repository of the Kubernetes Agent Runner Helm chart (optional). Defaults to \"oci://ghcr.io/humanitec/charts\""
+  description = "Repository of the Kubernetes Agent Runner Helm chart (optional). Defaults to \"oci://ghcr.io/stellwerk-labs/charts\""
   type        = string
-  default     = "oci://ghcr.io/humanitec/charts"
+  default     = "oci://ghcr.io/stellwerk-labs/charts"
 }
 
 variable "kubernetes_agent_runner_image_repository" {
-  description = "Kubernetes Agent Runner image without the tag, e.g. \"my-registry.io/humanitec/humanitec-runner\" (optional). If omitted or set to an empty string (\"\"), defaults to the value defined in the runner chart values.yaml file"
+  description = "Kubernetes Agent Runner image without the tag, e.g. \"my-registry.io/stellwerk/platform-orchestrator-runner\" (optional). If omitted or set to an empty string (\"\"), defaults to the value defined in the runner chart values.yaml file"
   type        = string
   default     = null
   nullable    = true

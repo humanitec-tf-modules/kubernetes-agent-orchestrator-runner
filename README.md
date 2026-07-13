@@ -1,13 +1,13 @@
 # Reusable Platform Orchestrator Kubernetes Agent Runner
 
-A reusable Terraform module for setting up a Kubernetes Agent Runner for the Humanitec Platform Orchestrator.
+A reusable Terraform module for setting up a Kubernetes Agent Runner for the Platform Orchestrator.
 
 ## Overview
 
-This module provides a reusable configuration for deploying a Kubernetes-based agent runner that integrates with the Humanitec Platform Orchestrator. The module handles:
+This module provides a reusable configuration for deploying a Kubernetes-based agent runner that integrates with the Platform Orchestrator. The module handles:
 
 - Creating dedicated Kubernetes namespaces for the runner deployment and jobs (can be the same or separate)
-- Deploying the Humanitec Kubernetes agent runner via Helm
+- Deploying the Platform Orchestrator Kubernetes agent runner via Helm
 - Managing runner authentication keys via Kubernetes secrets
 - Configuring service account annotations for cloud provider authentication (AWS IRSA, GKE Workload Identity, etc.)
 - Configuring state storage in the job namespace
@@ -17,8 +17,8 @@ This module provides a reusable configuration for deploying a Kubernetes-based a
 The module supports two deployment patterns:
 
 1. **Separate Namespaces** (default): The runner deployment and jobs run in different namespaces
-   - `k8s_namespace`: Where the runner pod runs (default: `humanitec-kubernetes-agent-runner-ns`)
-   - `k8s_job_namespace`: Where deployment jobs execute (default: `humanitec-kubernetes-agent-runner-job-ns`)
+   - `k8s_namespace`: Where the runner pod runs (default: `platform-orchestrator-kubernetes-agent-runner-ns`)
+   - `k8s_job_namespace`: Where deployment jobs execute (default: `platform-orchestrator-kubernetes-agent-runner-job-ns`)
 
 2. **Unified Namespace**: Both runner and jobs run in the same namespace
    - Set both `k8s_namespace` and `k8s_job_namespace` to the same value
@@ -66,7 +66,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
-  name = "humanitec-runner-vpc"
+  name = "platform-orchestrator-runner-vpc"
   cidr = "10.0.0.0/16"
 
   azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
@@ -90,7 +90,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
-  cluster_name    = "humanitec-runner-cluster"
+  cluster_name    = "platform-orchestrator-runner-cluster"
   cluster_version = "1.31"
 
   vpc_id     = module.vpc.vpc_id
@@ -114,12 +114,12 @@ module "runner_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.0"
 
-  role_name = "humanitec-runner-role"
+  role_name = "platform-orchestrator-runner-role"
 
   oidc_providers = {
     main = {
       provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["humanitec-kubernetes-agent-runner-job-ns:humanitec-kubernetes-agent-runner-job"]
+      namespace_service_accounts = ["platform-orchestrator-kubernetes-agent-runner-job-ns:platform-orchestrator-kubernetes-agent-runner-job"]
     }
   }
 
@@ -157,11 +157,11 @@ provider "helm" {
   }
 }
 
-# Deploy the Humanitec runner
+# Deploy the Platform Orchestrator runner
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = var.orchestrator_org_id
+  orchestrator_org_id = var.orchestrator_org_id
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
@@ -185,18 +185,18 @@ module "gcp_network" {
   version = "~> 12.0"
 
   project_id   = var.project_id
-  network_name = "humanitec-runner-network"
+  network_name = "platform-orchestrator-runner-network"
 
   subnets = [
     {
-      subnet_name   = "humanitec-runner-subnet"
+      subnet_name   = "platform-orchestrator-runner-subnet"
       subnet_ip     = "10.0.0.0/24"
       subnet_region = var.gcp_region
     }
   ]
 
   secondary_ranges = {
-    humanitec-runner-subnet = [
+    platform-orchestrator-runner-subnet = [
       {
         range_name    = "gke-pods"
         ip_cidr_range = "10.1.0.0/16"
@@ -215,7 +215,7 @@ module "gke" {
   version = "~> 41.0"
 
   project_id = var.project_id
-  name       = "humanitec-runner-cluster"
+  name       = "platform-orchestrator-runner-cluster"
   region     = var.gcp_region
 
   network           = module.gcp_network.network_name
@@ -228,7 +228,7 @@ module "gke" {
 
   node_pools = [
     {
-      name         = "humanitec-runner-pool"
+      name         = "platform-orchestrator-runner-pool"
       machine_type = "e2-medium"
       min_count    = 1
       max_count    = 3
@@ -240,8 +240,8 @@ module "gke" {
 
 # Create GCP Service Account for the runner
 resource "google_service_account" "runner_sa" {
-  account_id   = "humanitec-runner"
-  display_name = "Humanitec Kubernetes Agent Runner"
+  account_id   = "platform-orchestrator-runner"
+  display_name = "Platform Orchestrator Kubernetes Agent Runner"
   project      = var.project_id
 }
 
@@ -290,11 +290,11 @@ provider "helm" {
 # Get current GCP client config
 data "google_client_config" "default" {}
 
-# Deploy the Humanitec runner
+# Deploy the Platform Orchestrator runner
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
@@ -315,19 +315,19 @@ This example shows how to run the runner pod and deployment jobs in different na
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
   # Runner pod runs here
-  k8s_namespace     = "humanitec-runner-system"
+  k8s_namespace     = "platform-orchestrator-runner-system"
   # Deployment jobs run here
-  k8s_job_namespace = "humanitec-deployments"
+  k8s_job_namespace = "platform-orchestrator-deployments"
 
   service_account_annotations = {
-    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/humanitec-runner-role"
+    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/platform-orchestrator-runner-role"
   }
 }
 ```
@@ -338,18 +338,18 @@ This example shows how to run both the runner pod and deployment jobs in the sam
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
   # Both runner and jobs use the same namespace
-  k8s_namespace     = "humanitec-unified"
-  k8s_job_namespace = "humanitec-unified"
+  k8s_namespace     = "platform-orchestrator-unified"
+  k8s_job_namespace = "platform-orchestrator-unified"
 
   service_account_annotations = {
-    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/humanitec-runner-role"
+    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/platform-orchestrator-runner-role"
   }
 }
 ```
@@ -360,19 +360,19 @@ This example shows how to customize the service account names for both the runne
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
   # Service account for the runner pod
-  k8s_service_account_name = "humanitec-runner-sa"
+  k8s_service_account_name = "platform-orchestrator-runner-sa"
   # Service account for deployment jobs
-  k8s_job_service_account_name = "humanitec-job-sa"
+  k8s_job_service_account_name = "platform-orchestrator-job-sa"
 
   service_account_annotations = {
-    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/humanitec-runner-role"
+    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/platform-orchestrator-runner-role"
   }
 }
 ```
@@ -381,15 +381,15 @@ module "kubernetes_agent_runner" {
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
   runner_id        = "production-runner"
 
   service_account_annotations = {
-    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/humanitec-runner-role"
+    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/platform-orchestrator-runner-role"
   }
 }
 ```
@@ -400,9 +400,9 @@ This example shows how to pass additional environment variables to the kubernete
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
@@ -423,7 +423,7 @@ module "kubernetes_agent_runner" {
   ]
 
   service_account_annotations = {
-    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/humanitec-runner-role"
+    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/platform-orchestrator-runner-role"
   }
 }
 ```
@@ -434,16 +434,16 @@ This example shows how to customize the pod template for deployment jobs with re
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
   pod_template = jsonencode({
     metadata = {
       labels = {
-        "app.kubernetes.io/name"    = "humanitec-runner"
+        "app.kubernetes.io/name"    = "platform-orchestrator-runner"
         "app.kubernetes.io/version" = "v1.0.0"
       }
     }
@@ -465,7 +465,7 @@ module "kubernetes_agent_runner" {
   })
 
   service_account_annotations = {
-    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/humanitec-runner-role"
+    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/platform-orchestrator-runner-role"
   }
 }
 ```
@@ -476,21 +476,21 @@ This example shows how to use node selectors and tolerations to control pod plac
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
   pod_template = jsonencode({
     metadata = {
       labels = {
-        "app.kubernetes.io/name" = "humanitec-runner"
+        "app.kubernetes.io/name" = "platform-orchestrator-runner"
       }
     }
     spec = {
       nodeSelector = {
-        "workload-type" = "humanitec-deployments"
+        "workload-type" = "platform-orchestrator-deployments"
         "node-pool"     = "runner-pool"
       }
       tolerations = [{
@@ -503,7 +503,7 @@ module "kubernetes_agent_runner" {
   })
 
   service_account_annotations = {
-    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/humanitec-runner-role"
+    "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/platform-orchestrator-runner-role"
   }
 }
 ```
@@ -512,9 +512,9 @@ module "kubernetes_agent_runner" {
 
 ```hcl
 module "kubernetes_agent_runner" {
-  source = "github.com/humanitec-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
+  source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
-  humanitec_org_id = "my-org-id"
+  orchestrator_org_id = "my-org-id"
   private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 }
@@ -526,7 +526,7 @@ module "kubernetes_agent_runner" {
 {
   "metadata": {
     "labels": {
-      "app.kubernetes.io/name": "humanitec-runner"
+      "app.kubernetes.io/name": "platform-orchestrator-runner"
     }
   }
 }
@@ -540,8 +540,8 @@ This module creates the following resources:
    - Deployment namespace (optional - only created if different from job namespace): Where the runner pod is deployed
    - Job namespace (always created): Where deployment jobs execute and state is stored
 2. **Kubernetes Secret**: Stores the private key used for runner authentication (created in the deployment namespace)
-3. **Helm Release**: Deploys the Humanitec Kubernetes agent runner chart from `oci://ghcr.io/humanitec/charts/humanitec-kubernetes-agent-runner`
-4. **Platform Orchestrator Runner**: Registers the runner with Humanitec Platform Orchestrator, configured to:
+3. **Helm Release**: Deploys the Platform Orchestrator Kubernetes agent runner chart from `oci://ghcr.io/stellwerk-labs/charts/platform-orchestrator-kubernetes-agent-runner`
+4. **Platform Orchestrator Runner**: Registers the runner with Platform Orchestrator, configured to:
    - Use the job namespace for deployment execution
    - Store state in the job namespace using Kubernetes backend
 
@@ -599,23 +599,23 @@ The test suite validates:
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6.0 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.0 |
-| <a name="requirement_platform-orchestrator"></a> [platform-orchestrator](#requirement\_platform-orchestrator) | ~> 2.0 |
+| <a name="requirement_platform-orchestrator"></a> [platform-orchestrator](#requirement\_platform-orchestrator) | ~> 1.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
+| ---- | ------- |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.2.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.6.2 |
-| <a name="provider_platform-orchestrator"></a> [platform-orchestrator](#provider\_platform-orchestrator) | 2.11.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.9.0 |
+| <a name="provider_platform-orchestrator"></a> [platform-orchestrator](#provider\_platform-orchestrator) | 1.0.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.9.0 |
 
 ## Modules
 
@@ -624,12 +624,12 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
-| [helm_release.humanitec_kubernetes_agent_runner](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
-| [kubernetes_namespace.humanitec_kubernetes_agent_runner](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
-| [kubernetes_namespace.humanitec_kubernetes_agent_runner_job](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| ---- | ---- |
+| [helm_release.platform_orchestrator_kubernetes_agent_runner](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_secret.agent_runner_key](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
-| [platform-orchestrator_kubernetes_agent_runner.my_runner](https://registry.terraform.io/providers/humanitec/platform-orchestrator/latest/docs/resources/kubernetes_agent_runner) | resource |
+| [platform-orchestrator_kubernetes_agent_runner.my_runner](https://registry.terraform.io/providers/stellwerk-labs/platform-orchestrator/latest/docs/resources/kubernetes_agent_runner) | resource |
 | [random_id.runner_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_id.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [local_file.agent_runner_private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/data-sources/file) | data source |
@@ -638,18 +638,19 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_extra_env_vars"></a> [extra\_env\_vars](#input\_extra\_env\_vars) | Additional environment variables to pass to the kubernetes-agent runner pods | <pre>list(object({<br/>    name  = string<br/>    value = string<br/>  }))</pre> | `[]` | no |
-| <a name="input_humanitec_org_id"></a> [humanitec\_org\_id](#input\_humanitec\_org\_id) | The Humanitec organization ID to be set as a value in the Helm chart | `string` | n/a | yes |
-| <a name="input_k8s_job_namespace"></a> [k8s\_job\_namespace](#input\_k8s\_job\_namespace) | The Kubernetes namespace where the deployment jobs run | `string` | `"humanitec-kubernetes-agent-runner-job-ns"` | no |
-| <a name="input_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#input\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the deployment jobs created by the kubernetes-agent runner | `string` | `"humanitec-kubernetes-agent-runner-job"` | no |
-| <a name="input_k8s_namespace"></a> [k8s\_namespace](#input\_k8s\_namespace) | The Kubernetes namespace where the kubernetes-agent runner should run | `string` | `"humanitec-kubernetes-agent-runner-ns"` | no |
-| <a name="input_k8s_service_account_name"></a> [k8s\_service\_account\_name](#input\_k8s\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the the kubernetes-agent runner | `string` | `"humanitec-kubernetes-agent-runner"` | no |
-| <a name="input_kubernetes_agent_runner_chart_repository"></a> [kubernetes\_agent\_runner\_chart\_repository](#input\_kubernetes\_agent\_runner\_chart\_repository) | Repository of the Kubernetes Agent Runner Helm chart (optional). Defaults to "oci://ghcr.io/humanitec/charts" | `string` | `"oci://ghcr.io/humanitec/charts"` | no |
+| <a name="input_humanitec_org_id"></a> [humanitec\_org\_id](#input\_humanitec\_org\_id) | Deprecated alias for orchestrator\_org\_id | `string` | `null` | no |
+| <a name="input_k8s_job_namespace"></a> [k8s\_job\_namespace](#input\_k8s\_job\_namespace) | The Kubernetes namespace where the deployment jobs run | `string` | `"platform-orchestrator-kubernetes-agent-runner-job-ns"` | no |
+| <a name="input_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#input\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the deployment jobs created by the kubernetes-agent runner | `string` | `"platform-orchestrator-kubernetes-agent-runner-job"` | no |
+| <a name="input_k8s_namespace"></a> [k8s\_namespace](#input\_k8s\_namespace) | The Kubernetes namespace where the kubernetes-agent runner should run | `string` | `"platform-orchestrator-kubernetes-agent-runner-ns"` | no |
+| <a name="input_k8s_service_account_name"></a> [k8s\_service\_account\_name](#input\_k8s\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the the kubernetes-agent runner | `string` | `"platform-orchestrator-kubernetes-agent-runner"` | no |
+| <a name="input_kubernetes_agent_runner_chart_repository"></a> [kubernetes\_agent\_runner\_chart\_repository](#input\_kubernetes\_agent\_runner\_chart\_repository) | Repository of the Kubernetes Agent Runner Helm chart (optional). Defaults to "oci://ghcr.io/stellwerk-labs/charts" | `string` | `"oci://ghcr.io/stellwerk-labs/charts"` | no |
 | <a name="input_kubernetes_agent_runner_chart_version"></a> [kubernetes\_agent\_runner\_chart\_version](#input\_kubernetes\_agent\_runner\_chart\_version) | Version of the Kubernetes Agent Runner Helm chart (optional) | `string` | `null` | no |
-| <a name="input_kubernetes_agent_runner_image_repository"></a> [kubernetes\_agent\_runner\_image\_repository](#input\_kubernetes\_agent\_runner\_image\_repository) | Kubernetes Agent Runner image without the tag, e.g. "my-registry.io/humanitec/humanitec-runner" (optional). If omitted or set to an empty string (""), defaults to the value defined in the runner chart values.yaml file | `string` | `null` | no |
+| <a name="input_kubernetes_agent_runner_image_repository"></a> [kubernetes\_agent\_runner\_image\_repository](#input\_kubernetes\_agent\_runner\_image\_repository) | Kubernetes Agent Runner image without the tag, e.g. "my-registry.io/stellwerk/platform-orchestrator-runner" (optional). If omitted or set to an empty string (""), defaults to the value defined in the runner chart values.yaml file | `string` | `null` | no |
 | <a name="input_kubernetes_agent_runner_image_tag"></a> [kubernetes\_agent\_runner\_image\_tag](#input\_kubernetes\_agent\_runner\_image\_tag) | Kubernetes Agent Runner image tag (optional). If omitted or set to an empty string (""), defaults to the value defined in the runner chart values.yaml file | `string` | `null` | no |
-| <a name="input_pod_template"></a> [pod\_template](#input\_pod\_template) | A JSON-encoded pod template to customize the runner pods | `string` | `"{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"humanitec-runner\"}}}"` | no |
+| <a name="input_orchestrator_org_id"></a> [orchestrator\_org\_id](#input\_orchestrator\_org\_id) | The Platform Orchestrator organization ID to be set as a value in the Helm chart | `string` | `null` | no |
+| <a name="input_pod_template"></a> [pod\_template](#input\_pod\_template) | A JSON-encoded pod template to customize the runner pods | `string` | `"{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\"}}}"` | no |
 | <a name="input_private_key_path"></a> [private\_key\_path](#input\_private\_key\_path) | The path to the private key file for the kubernetes-agent runner | `string` | n/a | yes |
 | <a name="input_public_key_path"></a> [public\_key\_path](#input\_public\_key\_path) | The path to the public key file for the kubernetes-agent runner | `string` | n/a | yes |
 | <a name="input_runner_id"></a> [runner\_id](#input\_runner\_id) | The ID of the runner. If not provided, one will be generated using runner\_id\_prefix | `string` | `null` | no |
@@ -659,7 +660,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_k8s_job_namespace"></a> [k8s\_job\_namespace](#output\_k8s\_job\_namespace) | The Kubernetes namespace where the deployment jobs are executed |
 | <a name="output_k8s_job_service_account_name"></a> [k8s\_job\_service\_account\_name](#output\_k8s\_job\_service\_account\_name) | The name of the Kubernetes service account used by the deployment jobs |
 | <a name="output_k8s_namespace"></a> [k8s\_namespace](#output\_k8s\_namespace) | The Kubernetes namespace where the runner is deployed |
