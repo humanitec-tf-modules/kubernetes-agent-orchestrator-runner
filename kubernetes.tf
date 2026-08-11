@@ -1,10 +1,6 @@
-data "local_file" "agent_runner_private_key" {
-  filename = var.private_key_path
-}
-
 # The namespace for the kubernetes-agent runner deployment. If job and deployment runs in the same namespace, this resource is not created.
 resource "kubernetes_namespace" "platform_orchestrator_kubernetes_agent_runner" {
-  count = local.deployment_job_different_namespace ? 1 : 0
+  count = var.create_namespaces && local.deployment_job_different_namespace ? 1 : 0
   metadata {
     name = var.k8s_namespace
   }
@@ -12,29 +8,16 @@ resource "kubernetes_namespace" "platform_orchestrator_kubernetes_agent_runner" 
 
 # The namespace for the kubernetes-agent runner deployment job
 resource "kubernetes_namespace" "platform_orchestrator_kubernetes_agent_runner_job" {
+  count = var.create_namespaces ? 1 : 0
   metadata {
     name = var.k8s_job_namespace
-  }
-}
-
-# A Secret for the agent runner private key
-resource "kubernetes_secret" "agent_runner_key" {
-  metadata {
-    name      = local.kubernetes_agent_private_key_secret_name
-    namespace = local.deployment_job_different_namespace ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
-  }
-
-  type = "Opaque"
-
-  data = {
-    "private_key" = data.local_file.agent_runner_private_key.content
   }
 }
 
 # Install the Kubernetes agent runner Helm chart
 resource "helm_release" "platform_orchestrator_kubernetes_agent_runner" {
   name             = local.kubernetes_agent_runner_helm_release
-  namespace        = local.deployment_job_different_namespace ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
+  namespace        = local.runner_namespace
   create_namespace = false
   version          = var.kubernetes_agent_runner_chart_version # Will use latest if null
   repository       = var.kubernetes_agent_runner_chart_repository
@@ -51,12 +34,44 @@ resource "helm_release" "platform_orchestrator_kubernetes_agent_runner" {
         value : platform-orchestrator_kubernetes_agent_runner.my_runner.id
       },
       {
-        name : "platformOrchestrator.existingSecret"
-        value : kubernetes_secret.agent_runner_key.metadata[0].name
+        name : "nats.mode"
+        value : var.nats_mode
+      },
+      {
+        name : "nats.url"
+        value : var.nats_url
+      },
+      {
+        name : "nats.existingSecret"
+        value : var.nats_existing_secret
+      },
+      {
+        name : "nats.authType"
+        value : var.nats_auth_type
+      },
+      {
+        name : "nats.credentialsKey"
+        value : var.nats_credentials_key
+      },
+      {
+        name : "nats.caEnabled"
+        value : var.nats_ca_enabled
+      },
+      {
+        name : "nats.caKey"
+        value : var.nats_ca_key
+      },
+      {
+        name : "nats.jobCredentialsExistingSecret"
+        value : local.nats_job_credentials_secret
+      },
+      {
+        name : "nats.tokenKey"
+        value : var.nats_token_key
       },
       {
         name : "namespaceOverride"
-        value : local.deployment_job_different_namespace ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
+        value : local.runner_namespace
       },
       {
         name : "serviceAccount.name",
@@ -64,7 +79,7 @@ resource "helm_release" "platform_orchestrator_kubernetes_agent_runner" {
       },
       {
         name : "jobsRbac.namespace"
-        value : kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job.metadata[0].name
+        value : local.job_namespace
       },
       {
         name : "jobsRbac.serviceAccountName"
@@ -76,6 +91,13 @@ resource "helm_release" "platform_orchestrator_kubernetes_agent_runner" {
     local.service_account_annotation_sets,
     local.extra_env_vars_sets
   )
+
+  set_sensitive = var.nats_token == "" ? [] : [
+    {
+      name  = "nats.token"
+      value = var.nats_token
+    }
+  ]
 
   depends_on = [
     kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner,

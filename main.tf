@@ -9,11 +9,10 @@ resource "random_id" "suffix" {
   byte_length = 4
 }
 locals {
-  runner_id                                = var.runner_id != null ? var.runner_id : random_id.runner_id[0].hex
-  orchestrator_org_id                      = var.orchestrator_org_id != null ? var.orchestrator_org_id : var.humanitec_org_id
-  kubernetes_agent_private_key_secret_name = "platform-orchestrator-kubernetes-agent-runner-private-key"
-  kubernetes_agent_runner_helm_chart       = "platform-orchestrator-kubernetes-agent-runner"
-  kubernetes_agent_runner_helm_release     = "platform-orchestrator-kubernetes-agent-runner"
+  runner_id                            = var.runner_id != null ? var.runner_id : random_id.runner_id[0].hex
+  orchestrator_org_id                  = var.orchestrator_org_id != null ? var.orchestrator_org_id : var.humanitec_org_id
+  kubernetes_agent_runner_helm_chart   = "platform-orchestrator-kubernetes-agent-runner"
+  kubernetes_agent_runner_helm_release = "platform-orchestrator-kubernetes-agent-runner"
 
   # Build service account annotations for helm set values
   service_account_annotation_sets = [
@@ -54,11 +53,32 @@ locals {
   ]
 
   deployment_job_different_namespace = var.k8s_namespace != var.k8s_job_namespace
+  runner_namespace                   = local.deployment_job_different_namespace ? (var.create_namespaces ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : var.k8s_namespace) : local.job_namespace
+  job_namespace                      = var.create_namespaces ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job[0].metadata[0].name : var.k8s_job_namespace
+  nats_job_credentials_secret        = var.nats_job_credentials_existing_secret != "" ? var.nats_job_credentials_existing_secret : var.nats_existing_secret
 }
 
 check "orchestrator_org_id" {
   assert {
     condition     = try(trimspace(local.orchestrator_org_id) != "", false)
     error_message = "Set orchestrator_org_id. The deprecated humanitec_org_id alias is accepted during migration."
+  }
+}
+
+check "nats_authentication" {
+  assert {
+    condition = var.nats_auth_type == "token" ? (
+      (var.nats_token != "") != (var.nats_existing_secret != "")
+      ) : (
+      var.nats_token == "" && var.nats_existing_secret != ""
+    )
+    error_message = "Token auth requires exactly one of nats_token or nats_existing_secret. Credentials auth requires nats_existing_secret and forbids nats_token."
+  }
+}
+
+check "external_nats_secret_namespaces" {
+  assert {
+    condition     = var.nats_existing_secret == "" || !var.create_namespaces
+    error_message = "When using an existing NATS Secret, pre-create the runner and Job namespaces and set create_namespaces=false so the Secret can exist before Helm starts the runner."
   }
 }
