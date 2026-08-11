@@ -15,6 +15,11 @@ variable "public_key_path" {
   type        = string
 }
 
+variable "private_key_path" {
+  description = "Path to the Ed25519 private key used by the runner to authenticate to the HTTPS gateway"
+  type        = string
+}
+
 variable "orchestrator_org_id" {
   description = "The Platform Orchestrator organization ID to be set as a value in the Helm chart"
   type        = string
@@ -22,72 +27,60 @@ variable "orchestrator_org_id" {
   nullable    = true
 }
 
-variable "nats_mode" {
+variable "gateway_mode" {
   description = "Runner transport mode: simple, edge, or airgap"
   type        = string
   default     = "simple"
   validation {
-    condition     = contains(["simple", "edge", "airgap"], var.nats_mode)
-    error_message = "nats_mode must be simple, edge, or airgap."
+    condition     = contains(["simple", "edge", "airgap"], var.gateway_mode)
+    error_message = "gateway_mode must be simple, edge, or airgap."
   }
 }
 
-variable "nats_url" {
-  description = "NATS endpoint used by the runner. In airgap mode this is the protected-side broker."
-  type        = string
-}
-
-variable "nats_existing_secret" {
-  description = "Secret in the runner namespace containing NATS credentials"
+variable "gateway_url" {
+  description = "Public HTTPS runner gateway URL. Omit only in airgap mode, where the chart deploys a protected-side gateway."
   type        = string
   default     = ""
-}
-
-variable "nats_token" {
-  description = "NATS token used for local/bootstrap installations. This value is stored in Terraform state; use externally managed Secrets in production."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "nats_auth_type" {
-  description = "NATS authentication type: token or credentials"
-  type        = string
-  default     = "token"
   validation {
-    condition     = contains(["token", "credentials"], var.nats_auth_type)
-    error_message = "nats_auth_type must be token or credentials."
+    condition     = var.gateway_mode == "airgap" || can(regex("^https://", var.gateway_url))
+    error_message = "gateway_url must use HTTPS outside airgap mode."
   }
 }
 
-variable "nats_credentials_key" {
-  description = "Key containing the NATS credentials file in the credential Secrets"
+variable "gateway_ca_existing_secret" {
+  description = "Optional Secret containing the private CA used by the gateway"
   type        = string
-  default     = "creds"
+  default     = ""
 }
 
-variable "nats_ca_enabled" {
-  description = "Mount and use a private CA from the NATS credential Secrets"
+variable "gateway_job_ca_existing_secret" {
+  description = "Optional copy of the gateway CA Secret in the deployment Job namespace"
+  type        = string
+  default     = ""
+}
+
+variable "outbox_enabled" {
+  description = "Persist deployment results and logs while an edge gateway connection is unavailable"
   type        = bool
   default     = false
 }
 
-variable "nats_ca_key" {
-  description = "Key containing the NATS CA certificate in the credential Secrets"
-  type        = string
-  default     = "ca.crt"
-}
-
-variable "nats_job_credentials_existing_secret" {
-  description = "Secret in the deployment Job namespace containing NATS credentials"
+variable "outbox_storage_class_name" {
+  description = "RWX-capable StorageClass used by the edge outbox"
   type        = string
   default     = ""
 }
 
-variable "nats_token_key" {
-  description = "Key containing the NATS token in the credential Secrets"
+variable "airgap_gateway_secret" {
+  description = "Existing protected-side Secret containing the runner public key, central runner token salt, and a base64-encoded 32-byte receipt key"
   type        = string
-  default     = "token"
+  default     = ""
+}
+
+variable "airgap_nats_existing_secret" {
+  description = "Existing protected-side Secret containing the local NATS token. Used only inside an air-gapped compartment."
+  type        = string
+  default     = ""
 }
 
 variable "humanitec_org_id" {
@@ -98,7 +91,7 @@ variable "humanitec_org_id" {
 }
 
 variable "create_namespaces" {
-  description = "Create runner namespaces. Set false when pre-creating namespaces and externally managed NATS credential Secrets."
+  description = "Create runner namespaces. Set false when the namespaces and external Secrets are managed separately."
   type        = bool
   default     = true
 }
@@ -151,7 +144,7 @@ variable "extra_env_vars" {
 variable "kubernetes_agent_runner_chart_version" {
   description = "Version of the Kubernetes Agent Runner Helm chart"
   type        = string
-  default     = "0.2.0"
+  default     = "0.3.0"
 }
 
 variable "kubernetes_agent_runner_chart_repository" {

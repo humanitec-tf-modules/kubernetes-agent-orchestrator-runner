@@ -14,6 +14,22 @@ resource "kubernetes_namespace" "platform_orchestrator_kubernetes_agent_runner_j
   }
 }
 
+resource "kubernetes_secret_v1" "runner_private_key" {
+  metadata {
+    name      = local.runner_private_key_secret
+    namespace = local.runner_namespace
+  }
+  data = {
+    "private-key.pem" = data.local_sensitive_file.agent_runner_private_key.content
+  }
+  type = "Opaque"
+
+  depends_on = [
+    kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner,
+    kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job
+  ]
+}
+
 # Install the Kubernetes agent runner Helm chart
 resource "helm_release" "platform_orchestrator_kubernetes_agent_runner" {
   name             = local.kubernetes_agent_runner_helm_release
@@ -34,40 +50,48 @@ resource "helm_release" "platform_orchestrator_kubernetes_agent_runner" {
         value : platform-orchestrator_kubernetes_agent_runner.my_runner.id
       },
       {
-        name : "nats.mode"
-        value : var.nats_mode
+        name : "gateway.mode"
+        value : var.gateway_mode
       },
       {
-        name : "nats.url"
-        value : var.nats_url
+        name : "gateway.url"
+        value : var.gateway_url
       },
       {
-        name : "nats.existingSecret"
-        value : var.nats_existing_secret
+        name : "gateway.privateKeyExistingSecret"
+        value : kubernetes_secret_v1.runner_private_key.metadata[0].name
       },
       {
-        name : "nats.authType"
-        value : var.nats_auth_type
+        name : "gateway.caExistingSecret"
+        value : var.gateway_ca_existing_secret
       },
       {
-        name : "nats.credentialsKey"
-        value : var.nats_credentials_key
+        name : "gateway.jobCaExistingSecret"
+        value : var.gateway_job_ca_existing_secret
       },
       {
-        name : "nats.caEnabled"
-        value : var.nats_ca_enabled
+        name : "outbox.enabled"
+        value : var.outbox_enabled
       },
       {
-        name : "nats.caKey"
-        value : var.nats_ca_key
+        name : "outbox.storageClassName"
+        value : var.outbox_storage_class_name
       },
       {
-        name : "nats.jobCredentialsExistingSecret"
-        value : local.nats_job_credentials_secret
+        name : "airgap.gatewaySecret"
+        value : var.airgap_gateway_secret
       },
       {
-        name : "nats.tokenKey"
-        value : var.nats_token_key
+        name : "airgap.nats.existingSecret"
+        value : var.airgap_nats_existing_secret
+      },
+      {
+        name : "protected-nats.enabled"
+        value : var.gateway_mode == "airgap"
+      },
+      {
+        name : "protected-nats.container.env.NATS_AUTH_TOKEN.valueFrom.secretKeyRef.name"
+        value : var.airgap_nats_existing_secret
       },
       {
         name : "namespaceOverride"
@@ -92,15 +116,9 @@ resource "helm_release" "platform_orchestrator_kubernetes_agent_runner" {
     local.extra_env_vars_sets
   )
 
-  set_sensitive = var.nats_token == "" ? [] : [
-    {
-      name  = "nats.token"
-      value = var.nats_token
-    }
-  ]
-
   depends_on = [
     kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner,
-    kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job
+    kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job,
+    kubernetes_secret_v1.runner_private_key
   ]
 }

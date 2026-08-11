@@ -5,7 +5,7 @@ mock_provider "helm" {}
 mock_provider "local" {}
 
 variables {
-  nats_token = "test-token"
+  private_key_path = "./tests/fixtures/test_private_key"
 }
 
 run "test_basic_aws_irsa" {
@@ -13,7 +13,7 @@ run "test_basic_aws_irsa" {
 
   variables {
     orchestrator_org_id = "test-org-123"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     service_account_annotations = {
       "eks.amazonaws.com/role-arn" = "arn:aws:iam::123456789012:role/test-runner-role"
@@ -72,7 +72,7 @@ run "test_basic_gke_workload_identity" {
 
   variables {
     orchestrator_org_id = "test-org-456"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     service_account_annotations = {
       "iam.gke.io/gcp-service-account" = "test-sa@test-project.iam.gserviceaccount.com"
@@ -91,7 +91,7 @@ run "test_custom_namespace" {
 
   variables {
     orchestrator_org_id = "test-org-789"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     k8s_namespace       = "custom-runner-namespace"
   }
@@ -112,7 +112,7 @@ run "test_custom_service_account" {
 
   variables {
     orchestrator_org_id      = "test-org-abc"
-    nats_url                 = "nats://nats.example.test:4222"
+    gateway_url              = "https://api.example.test/runner-gateway"
     public_key_path          = "./tests/fixtures/test_public_key"
     k8s_service_account_name = "custom-service-account"
   }
@@ -128,7 +128,7 @@ run "test_minimal_configuration" {
 
   variables {
     orchestrator_org_id = "test-org-minimal"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
   }
 
@@ -144,7 +144,7 @@ run "test_deprecated_org_id_alias" {
 
   variables {
     humanitec_org_id = "test-org-legacy"
-    nats_url         = "nats://nats.example.test:4222"
+    gateway_url      = "https://api.example.test/runner-gateway"
     public_key_path  = "./tests/fixtures/test_public_key"
   }
 
@@ -159,7 +159,7 @@ run "test_runner_id_output" {
 
   variables {
     orchestrator_org_id = "test-org-output"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
   }
 
@@ -173,7 +173,7 @@ run "test_separate_deployment_job_namespaces" {
 
   variables {
     orchestrator_org_id = "test-org-separate-ns"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     k8s_namespace       = "runner-deployment"
     k8s_job_namespace   = "runner-jobs"
@@ -205,7 +205,7 @@ run "test_same_deployment_job_namespace" {
 
   variables {
     orchestrator_org_id = "test-org-same-ns"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     k8s_namespace       = "unified-namespace"
     k8s_job_namespace   = "unified-namespace"
@@ -232,7 +232,7 @@ run "test_custom_service_accounts" {
 
   variables {
     orchestrator_org_id          = "test-org-sa"
-    nats_url                     = "nats://nats.example.test:4222"
+    gateway_url                  = "https://api.example.test/runner-gateway"
     public_key_path              = "./tests/fixtures/test_public_key"
     k8s_service_account_name     = "custom-deployment-sa"
     k8s_job_service_account_name = "custom-job-sa"
@@ -254,7 +254,7 @@ run "test_state_storage_configuration" {
 
   variables {
     orchestrator_org_id = "test-org-state"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     k8s_job_namespace   = "job-namespace-with-state"
   }
@@ -274,7 +274,7 @@ run "test_default_pod_template" {
 
   variables {
     orchestrator_org_id = "test-org-pod-default"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
   }
 
@@ -291,7 +291,7 @@ run "test_custom_pod_template_with_labels" {
 
   variables {
     orchestrator_org_id = "test-org-pod-custom"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     pod_template        = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\",\"app.kubernetes.io/version\" : \"v1.0.0\",\"custom-label\":\"custom-value\"}}}"
   }
@@ -310,7 +310,7 @@ run "test_custom_pod_template_with_resources" {
 
   variables {
     orchestrator_org_id = "test-org-pod-resources"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     pod_template        = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\"},\"annotations\":{\"custom-annotation\":\"value\"}},\"spec\":{\"containers\":[{\"name\":\"runner\",\"resources\":{\"requests\":{\"memory\":\"256Mi\",\"cpu\":\"100m\"},\"limits\":{\"memory\":\"512Mi\",\"cpu\":\"200m\"}}}]}}"
   }
@@ -331,7 +331,7 @@ run "test_custom_pod_template_with_node_selector" {
 
   variables {
     orchestrator_org_id = "test-org-pod-selector"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     pod_template        = "{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\"}},\"spec\":{\"nodeSelector\":{\"workload-type\":\"platform-orchestrator-runner\",\"node-pool\":\"runner-pool\"},\"tolerations\":[{\"key\":\"dedicated\",\"operator\":\"Equal\",\"value\":\"runner\",\"effect\":\"NoSchedule\"}]}}"
   }
@@ -347,7 +347,7 @@ run "test_extra_env_vars_default_empty" {
 
   variables {
     orchestrator_org_id = "test-org-env-empty"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
   }
 
@@ -367,7 +367,7 @@ run "test_extra_env_vars_single" {
 
   variables {
     orchestrator_org_id = "test-org-env-single"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     extra_env_vars = [
       {
@@ -412,7 +412,7 @@ run "test_extra_env_vars_multiple" {
 
   variables {
     orchestrator_org_id = "test-org-env-multiple"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     extra_env_vars = [
       {
@@ -477,7 +477,7 @@ run "test_extra_env_vars_helm_integration" {
 
   variables {
     orchestrator_org_id = "test-org-env-helm"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
     extra_env_vars = [
       {
@@ -511,7 +511,7 @@ run "test_self_hosted_artefacts" {
 
   variables {
     orchestrator_org_id = "test-org-123"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
 
     kubernetes_agent_runner_chart_repository = "oci://my-registry.io/stellwerk/charts"
@@ -547,7 +547,7 @@ run "test_empty_image_variables" {
 
   variables {
     orchestrator_org_id = "test-org-123"
-    nats_url            = "nats://nats.example.test:4222"
+    gateway_url         = "https://api.example.test/runner-gateway"
     public_key_path     = "./tests/fixtures/test_public_key"
 
     kubernetes_agent_runner_image_repository = ""
@@ -571,59 +571,74 @@ run "test_empty_image_variables" {
   }
 }
 
-run "test_airgap_nats_transport" {
+run "test_airgap_gateway" {
   command = plan
 
   variables {
-    orchestrator_org_id                  = "test-org-airgap"
-    public_key_path                      = "./tests/fixtures/test_public_key"
-    create_namespaces                    = false
-    nats_token                           = ""
-    nats_mode                            = "airgap"
-    nats_url                             = "tls://protected-nats.internal:4222"
-    nats_existing_secret                 = "runner-nats-creds"
-    nats_job_credentials_existing_secret = "job-nats-creds"
+    orchestrator_org_id         = "test-org-airgap"
+    public_key_path             = "./tests/fixtures/test_public_key"
+    create_namespaces           = false
+    gateway_mode                = "airgap"
+    gateway_url                 = ""
+    airgap_gateway_secret       = "protected-gateway"
+    airgap_nats_existing_secret = "protected-nats"
   }
 
   assert {
     condition = anytrue([
       for setting in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
-      setting.name == "nats.mode" && setting.value == "airgap"
+      setting.name == "gateway.mode" && setting.value == "airgap"
     ])
-    error_message = "The airgap transport mode must be passed to the runner chart."
+    error_message = "The airgap gateway mode must be passed to the runner chart."
   }
 
   assert {
     condition = anytrue([
       for setting in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
-      setting.name == "nats.url" && setting.value == "tls://protected-nats.internal:4222"
+      setting.name == "protected-nats.enabled" && setting.value == "true"
     ])
-    error_message = "The protected-side NATS endpoint must be passed to the runner chart."
+    error_message = "Airgap mode must deploy the protected-side broker."
   }
 }
 
-run "test_production_external_nats_secret" {
+run "test_edge_outbox" {
   command = plan
 
   variables {
-    orchestrator_org_id  = "test-org-production"
-    public_key_path      = "./tests/fixtures/test_public_key"
-    nats_url             = "tls://nats.example.test:4222"
-    nats_token           = ""
-    nats_existing_secret = "runner-nats-creds"
-    create_namespaces    = false
+    orchestrator_org_id       = "test-org-production"
+    public_key_path           = "./tests/fixtures/test_public_key"
+    gateway_mode              = "edge"
+    gateway_url               = "https://api.example.test/runner-gateway"
+    outbox_enabled            = true
+    outbox_storage_class_name = "shared-rwx"
+    create_namespaces         = false
   }
 
   assert {
     condition     = length(kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner) == 0 && length(kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job) == 0
-    error_message = "Externally managed credential mode must use pre-created namespaces."
+    error_message = "Pre-created namespace mode must not create namespaces."
   }
 
   assert {
     condition = anytrue([
       for setting in helm_release.platform_orchestrator_kubernetes_agent_runner.set :
-      setting.name == "nats.jobCredentialsExistingSecret" && setting.value == "runner-nats-creds"
+      setting.name == "outbox.enabled" && setting.value == "true"
     ])
-    error_message = "The existing runner Secret must also be used by deployment Jobs by default."
+    error_message = "Edge mode must enable the durable HTTPS outbox."
   }
+}
+
+run "test_edge_requires_outbox" {
+  command = plan
+
+  variables {
+    orchestrator_org_id = "test-org-edge"
+    public_key_path     = "./tests/fixtures/test_public_key"
+    gateway_mode        = "edge"
+    gateway_url         = "https://api.example.test/runner-gateway"
+    outbox_enabled      = false
+    create_namespaces   = false
+  }
+
+  expect_failures = [check.edge_outbox]
 }
