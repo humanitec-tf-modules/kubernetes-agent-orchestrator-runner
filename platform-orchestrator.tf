@@ -2,6 +2,10 @@ data "local_file" "agent_runner_public_key" {
   filename = var.public_key_path
 }
 
+data "local_sensitive_file" "agent_runner_private_key" {
+  filename = var.private_key_path
+}
+
 resource "platform-orchestrator_kubernetes_agent_runner" "my_runner" {
   id          = local.runner_id
   description = "runner for all the envs"

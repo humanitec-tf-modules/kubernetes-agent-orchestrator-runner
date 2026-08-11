@@ -13,6 +13,7 @@ locals {
   orchestrator_org_id                  = var.orchestrator_org_id != null ? var.orchestrator_org_id : var.humanitec_org_id
   kubernetes_agent_runner_helm_chart   = "platform-orchestrator-kubernetes-agent-runner"
   kubernetes_agent_runner_helm_release = "platform-orchestrator-kubernetes-agent-runner"
+  runner_private_key_secret            = "${local.kubernetes_agent_runner_helm_release}-identity"
 
   # Build service account annotations for helm set values
   service_account_annotation_sets = [
@@ -55,7 +56,6 @@ locals {
   deployment_job_different_namespace = var.k8s_namespace != var.k8s_job_namespace
   runner_namespace                   = local.deployment_job_different_namespace ? (var.create_namespaces ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner[0].metadata[0].name : var.k8s_namespace) : local.job_namespace
   job_namespace                      = var.create_namespaces ? kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job[0].metadata[0].name : var.k8s_job_namespace
-  nats_job_credentials_secret        = var.nats_job_credentials_existing_secret != "" ? var.nats_job_credentials_existing_secret : var.nats_existing_secret
 }
 
 check "orchestrator_org_id" {
@@ -65,20 +65,16 @@ check "orchestrator_org_id" {
   }
 }
 
-check "nats_authentication" {
+check "edge_outbox" {
   assert {
-    condition = var.nats_auth_type == "token" ? (
-      (var.nats_token != "") != (var.nats_existing_secret != "")
-      ) : (
-      var.nats_token == "" && var.nats_existing_secret != ""
-    )
-    error_message = "Token auth requires exactly one of nats_token or nats_existing_secret. Credentials auth requires nats_existing_secret and forbids nats_token."
+    condition     = var.outbox_enabled == (var.gateway_mode == "edge")
+    error_message = "Edge mode requires outbox_enabled=true; the outbox is not valid in simple or airgap mode."
   }
 }
 
-check "external_nats_secret_namespaces" {
+check "airgap_secrets" {
   assert {
-    condition     = var.nats_existing_secret == "" || !var.create_namespaces
-    error_message = "When using an existing NATS Secret, pre-create the runner and Job namespaces and set create_namespaces=false so the Secret can exist before Helm starts the runner."
+    condition     = var.gateway_mode != "airgap" || (var.airgap_gateway_secret != "" && var.airgap_nats_existing_secret != "")
+    error_message = "Airgap mode requires airgap_gateway_secret and airgap_nats_existing_secret."
   }
 }
