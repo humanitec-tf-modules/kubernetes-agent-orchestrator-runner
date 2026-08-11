@@ -8,7 +8,8 @@ This module provides a reusable configuration for deploying a Kubernetes-based a
 
 - Creating dedicated Kubernetes namespaces for the runner deployment and jobs (can be the same or separate)
 - Deploying the Platform Orchestrator Kubernetes agent runner via Helm
-- Managing runner authentication keys via Kubernetes secrets
+- Connecting the runner and deployment Jobs to NATS with existing Kubernetes
+  Secrets
 - Configuring service account annotations for cloud provider authentication (AWS IRSA, GKE Workload Identity, etc.)
 - Configuring state storage in the job namespace
 
@@ -44,7 +45,9 @@ Before using this module, ensure you have:
      - GCP service account created and granted necessary permissions
      - IAM binding between Kubernetes service account and GCP service account
 
-3. **Generated SSH key pair** for the runner authentication:
+3. **Runner registration key pair**. The public key is registered with the
+   Platform Orchestrator; the private key remains local and is not mounted into
+   the NATS runner:
 
    ```bash
    openssl genpkey -algorithm ed25519 -out runner_private_key.pem
@@ -52,7 +55,26 @@ Before using this module, ensure you have:
    # This creates runner_private_key.pem (private) and runner_public_key.pem (public)
    ```
 
-4. **Kubernetes and Helm providers configured** in your Terraform configuration (see Usage examples below)
+4. **NATS credentials** in both runner namespaces when they differ. The broker
+   endpoint must be reachable from the runner cluster. For token authentication:
+
+   ```shell
+   kubectl create namespace platform-orchestrator-kubernetes-agent-runner-ns
+   kubectl create namespace platform-orchestrator-kubernetes-agent-runner-job-ns
+   kubectl create secret generic runner-nats-creds \
+     --namespace platform-orchestrator-kubernetes-agent-runner-ns \
+     --from-literal=token='<runner-token>'
+   kubectl create secret generic runner-nats-creds \
+     --namespace platform-orchestrator-kubernetes-agent-runner-job-ns \
+     --from-literal=token='<runner-token>'
+   ```
+
+   Set `create_namespaces = false` when using these externally managed Secrets.
+   This lets the credentials exist before Helm waits for the runner. For local
+   bootstrap only, the module also accepts sensitive `nats_token`; that value is
+   stored in Terraform state and should not be used for production credentials.
+
+5. **Kubernetes and Helm providers configured** in your Terraform configuration (see Usage examples below)
 
 ## Usage
 
@@ -162,9 +184,12 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = var.orchestrator_org_id
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   # AWS IRSA configuration - link to the IAM role created above
   service_account_annotations = {
     "eks.amazonaws.com/role-arn" = module.runner_irsa_role.iam_role_arn
@@ -295,9 +320,12 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   # GKE Workload Identity configuration - link to the GCP service account created above
   service_account_annotations = {
     "iam.gke.io/gcp-service-account" = google_service_account.runner_sa.email
@@ -318,9 +346,12 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   # Runner pod runs here
   k8s_namespace     = "platform-orchestrator-runner-system"
   # Deployment jobs run here
@@ -341,9 +372,12 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   # Both runner and jobs use the same namespace
   k8s_namespace     = "platform-orchestrator-unified"
   k8s_job_namespace = "platform-orchestrator-unified"
@@ -363,9 +397,12 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   # Service account for the runner pod
   k8s_service_account_name = "platform-orchestrator-runner-sa"
   # Service account for deployment jobs
@@ -384,8 +421,11 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   runner_id        = "production-runner"
 
   service_account_annotations = {
@@ -403,9 +443,12 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   # Additional environment variables for the runner
   extra_env_vars = [
     {
@@ -437,9 +480,12 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   pod_template = jsonencode({
     metadata = {
       labels = {
@@ -479,9 +525,12 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
 
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
   pod_template = jsonencode({
     metadata = {
       labels = {
@@ -515,8 +564,11 @@ module "kubernetes_agent_runner" {
   source = "github.com/stellwerk-tf-modules/kubernetes-agent-orchestrator-runner?ref=vX.Y.Z"
 
   orchestrator_org_id = "my-org-id"
-  private_key_path = "./runner_private_key.pem"
   public_key_path  = "./runner_public_key.pem"
+  nats_url                            = "tls://nats.orchestrator.example.com:4222"
+  nats_existing_secret                = "runner-nats-creds"
+  nats_job_credentials_existing_secret = "runner-nats-creds"
+  create_namespaces                    = false
 }
 ```
 
@@ -614,7 +666,7 @@ The test suite validates:
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.2.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | 2.9.0 |
-| <a name="provider_platform-orchestrator"></a> [platform-orchestrator](#provider\_platform-orchestrator) | 1.0.0 |
+| <a name="provider_platform-orchestrator"></a> [platform-orchestrator](#provider\_platform-orchestrator) | 1.0.1 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.9.0 |
 
 ## Modules
@@ -628,17 +680,16 @@ No modules.
 | [helm_release.platform_orchestrator_kubernetes_agent_runner](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_namespace.platform_orchestrator_kubernetes_agent_runner_job](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
-| [kubernetes_secret.agent_runner_key](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [platform-orchestrator_kubernetes_agent_runner.my_runner](https://registry.terraform.io/providers/stellwerk-labs/platform-orchestrator/latest/docs/resources/kubernetes_agent_runner) | resource |
 | [random_id.runner_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_id.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
-| [local_file.agent_runner_private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/data-sources/file) | data source |
 | [local_file.agent_runner_public_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/data-sources/file) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_create_namespaces"></a> [create\_namespaces](#input\_create\_namespaces) | Create runner namespaces. Set false when pre-creating namespaces and externally managed NATS credential Secrets. | `bool` | `true` | no |
 | <a name="input_extra_env_vars"></a> [extra\_env\_vars](#input\_extra\_env\_vars) | Additional environment variables to pass to the kubernetes-agent runner pods | <pre>list(object({<br/>    name  = string<br/>    value = string<br/>  }))</pre> | `[]` | no |
 | <a name="input_humanitec_org_id"></a> [humanitec\_org\_id](#input\_humanitec\_org\_id) | Deprecated alias for orchestrator\_org\_id | `string` | `null` | no |
 | <a name="input_k8s_job_namespace"></a> [k8s\_job\_namespace](#input\_k8s\_job\_namespace) | The Kubernetes namespace where the deployment jobs run | `string` | `"platform-orchestrator-kubernetes-agent-runner-job-ns"` | no |
@@ -646,12 +697,21 @@ No modules.
 | <a name="input_k8s_namespace"></a> [k8s\_namespace](#input\_k8s\_namespace) | The Kubernetes namespace where the kubernetes-agent runner should run | `string` | `"platform-orchestrator-kubernetes-agent-runner-ns"` | no |
 | <a name="input_k8s_service_account_name"></a> [k8s\_service\_account\_name](#input\_k8s\_service\_account\_name) | The name of the Kubernetes service account to be assumed by the the kubernetes-agent runner | `string` | `"platform-orchestrator-kubernetes-agent-runner"` | no |
 | <a name="input_kubernetes_agent_runner_chart_repository"></a> [kubernetes\_agent\_runner\_chart\_repository](#input\_kubernetes\_agent\_runner\_chart\_repository) | Repository of the Kubernetes Agent Runner Helm chart (optional). Defaults to "oci://ghcr.io/stellwerk-labs/charts" | `string` | `"oci://ghcr.io/stellwerk-labs/charts"` | no |
-| <a name="input_kubernetes_agent_runner_chart_version"></a> [kubernetes\_agent\_runner\_chart\_version](#input\_kubernetes\_agent\_runner\_chart\_version) | Version of the Kubernetes Agent Runner Helm chart (optional) | `string` | `null` | no |
+| <a name="input_kubernetes_agent_runner_chart_version"></a> [kubernetes\_agent\_runner\_chart\_version](#input\_kubernetes\_agent\_runner\_chart\_version) | Version of the Kubernetes Agent Runner Helm chart | `string` | `"0.2.0"` | no |
 | <a name="input_kubernetes_agent_runner_image_repository"></a> [kubernetes\_agent\_runner\_image\_repository](#input\_kubernetes\_agent\_runner\_image\_repository) | Kubernetes Agent Runner image without the tag, e.g. "my-registry.io/stellwerk/platform-orchestrator-runner" (optional). If omitted or set to an empty string (""), defaults to the value defined in the runner chart values.yaml file | `string` | `null` | no |
 | <a name="input_kubernetes_agent_runner_image_tag"></a> [kubernetes\_agent\_runner\_image\_tag](#input\_kubernetes\_agent\_runner\_image\_tag) | Kubernetes Agent Runner image tag (optional). If omitted or set to an empty string (""), defaults to the value defined in the runner chart values.yaml file | `string` | `null` | no |
+| <a name="input_nats_auth_type"></a> [nats\_auth\_type](#input\_nats\_auth\_type) | NATS authentication type: token or credentials | `string` | `"token"` | no |
+| <a name="input_nats_ca_enabled"></a> [nats\_ca\_enabled](#input\_nats\_ca\_enabled) | Mount and use a private CA from the NATS credential Secrets | `bool` | `false` | no |
+| <a name="input_nats_ca_key"></a> [nats\_ca\_key](#input\_nats\_ca\_key) | Key containing the NATS CA certificate in the credential Secrets | `string` | `"ca.crt"` | no |
+| <a name="input_nats_credentials_key"></a> [nats\_credentials\_key](#input\_nats\_credentials\_key) | Key containing the NATS credentials file in the credential Secrets | `string` | `"creds"` | no |
+| <a name="input_nats_existing_secret"></a> [nats\_existing\_secret](#input\_nats\_existing\_secret) | Secret in the runner namespace containing NATS credentials | `string` | `""` | no |
+| <a name="input_nats_job_credentials_existing_secret"></a> [nats\_job\_credentials\_existing\_secret](#input\_nats\_job\_credentials\_existing\_secret) | Secret in the deployment Job namespace containing NATS credentials | `string` | `""` | no |
+| <a name="input_nats_mode"></a> [nats\_mode](#input\_nats\_mode) | Runner transport mode: simple, edge, or airgap | `string` | `"simple"` | no |
+| <a name="input_nats_token"></a> [nats\_token](#input\_nats\_token) | NATS token used for local/bootstrap installations. This value is stored in Terraform state; use externally managed Secrets in production. | `string` | `""` | no |
+| <a name="input_nats_token_key"></a> [nats\_token\_key](#input\_nats\_token\_key) | Key containing the NATS token in the credential Secrets | `string` | `"token"` | no |
+| <a name="input_nats_url"></a> [nats\_url](#input\_nats\_url) | NATS endpoint used by the runner. In airgap mode this is the protected-side broker. | `string` | n/a | yes |
 | <a name="input_orchestrator_org_id"></a> [orchestrator\_org\_id](#input\_orchestrator\_org\_id) | The Platform Orchestrator organization ID to be set as a value in the Helm chart | `string` | `null` | no |
 | <a name="input_pod_template"></a> [pod\_template](#input\_pod\_template) | A JSON-encoded pod template to customize the runner pods | `string` | `"{\"metadata\":{\"labels\":{\"app.kubernetes.io/name\":\"platform-orchestrator-runner\"}}}"` | no |
-| <a name="input_private_key_path"></a> [private\_key\_path](#input\_private\_key\_path) | The path to the private key file for the kubernetes-agent runner | `string` | n/a | yes |
 | <a name="input_public_key_path"></a> [public\_key\_path](#input\_public\_key\_path) | The path to the public key file for the kubernetes-agent runner | `string` | n/a | yes |
 | <a name="input_runner_id"></a> [runner\_id](#input\_runner\_id) | The ID of the runner. If not provided, one will be generated using runner\_id\_prefix | `string` | `null` | no |
 | <a name="input_runner_id_prefix"></a> [runner\_id\_prefix](#input\_runner\_id\_prefix) | The prefix to use when generating a runner ID. Only used if runner\_id is not provided | `string` | `"runner"` | no |

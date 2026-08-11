@@ -10,11 +10,6 @@ variable "runner_id_prefix" {
   default     = "runner"
 }
 
-variable "private_key_path" {
-  description = "The path to the private key file for the kubernetes-agent runner"
-  type        = string
-}
-
 variable "public_key_path" {
   description = "The path to the public key file for the kubernetes-agent runner"
   type        = string
@@ -27,11 +22,85 @@ variable "orchestrator_org_id" {
   nullable    = true
 }
 
+variable "nats_mode" {
+  description = "Runner transport mode: simple, edge, or airgap"
+  type        = string
+  default     = "simple"
+  validation {
+    condition     = contains(["simple", "edge", "airgap"], var.nats_mode)
+    error_message = "nats_mode must be simple, edge, or airgap."
+  }
+}
+
+variable "nats_url" {
+  description = "NATS endpoint used by the runner. In airgap mode this is the protected-side broker."
+  type        = string
+}
+
+variable "nats_existing_secret" {
+  description = "Secret in the runner namespace containing NATS credentials"
+  type        = string
+  default     = ""
+}
+
+variable "nats_token" {
+  description = "NATS token used for local/bootstrap installations. This value is stored in Terraform state; use externally managed Secrets in production."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "nats_auth_type" {
+  description = "NATS authentication type: token or credentials"
+  type        = string
+  default     = "token"
+  validation {
+    condition     = contains(["token", "credentials"], var.nats_auth_type)
+    error_message = "nats_auth_type must be token or credentials."
+  }
+}
+
+variable "nats_credentials_key" {
+  description = "Key containing the NATS credentials file in the credential Secrets"
+  type        = string
+  default     = "creds"
+}
+
+variable "nats_ca_enabled" {
+  description = "Mount and use a private CA from the NATS credential Secrets"
+  type        = bool
+  default     = false
+}
+
+variable "nats_ca_key" {
+  description = "Key containing the NATS CA certificate in the credential Secrets"
+  type        = string
+  default     = "ca.crt"
+}
+
+variable "nats_job_credentials_existing_secret" {
+  description = "Secret in the deployment Job namespace containing NATS credentials"
+  type        = string
+  default     = ""
+}
+
+variable "nats_token_key" {
+  description = "Key containing the NATS token in the credential Secrets"
+  type        = string
+  default     = "token"
+}
+
 variable "humanitec_org_id" {
   description = "Deprecated alias for orchestrator_org_id"
   type        = string
   default     = null
   nullable    = true
+}
+
+variable "create_namespaces" {
+  description = "Create runner namespaces. Set false when pre-creating namespaces and externally managed NATS credential Secrets."
+  type        = bool
+  default     = true
 }
 
 variable "service_account_annotations" {
@@ -80,10 +149,9 @@ variable "extra_env_vars" {
 }
 
 variable "kubernetes_agent_runner_chart_version" {
-  description = "Version of the Kubernetes Agent Runner Helm chart (optional)"
+  description = "Version of the Kubernetes Agent Runner Helm chart"
   type        = string
-  default     = null
-  nullable    = true
+  default     = "0.2.0"
 }
 
 variable "kubernetes_agent_runner_chart_repository" {
